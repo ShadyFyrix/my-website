@@ -6,3 +6,4 @@ dist/
 *.tsbuildinfo
 .hallmark/shots/
 .hallmark/before/
+.wrangler/
