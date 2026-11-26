@@ -1,0 +1,29 @@
+[
+ {
+  "shape": "Portfolio Grid",
+  "theme": "formwork",
+  "axes": "mid/display-condensed/warm",
+  "hero": "Stage",
+  "nav": "edge-aligned cast bar",
+  "footer": "mast",
+  "imagery": "product capture and library 1, mono",
+  "photos": [
+   "Rauman_vesitorni_4.jpg"
+  ],
+  "entry": "Vibe GIF Song Studio real screenshot in hero Stage",
+  "fingerprint": "Hanging|Asymmetric spans|Hairline|Solid|Tightly cropped|None",
+  "sections": [
+   "Hero Stage",
+   "About Split",
+   "Products Grid + Index",
+   "Achievements Ledger",
+   "Connect Plates",
+   "Footer Mast"
+  ],
+  "signature": "Live product switcher in hero cast plate (Vibe GIF Studio + ExamGuard AI)",
+  "waived": [],
+  "prompt": "Personal website for Luc Van Son (ShadyFyrix) showcasing biography, achievements, personal networks, and software products",
+  "date": "2026-11-26",
+  "mode": "build"
+ }
+]

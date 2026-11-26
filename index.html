@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lục Văn Sơn, Kỹ sư Phần mềm và Ứng dụng AI</title>
+    <meta
+      name="description"
+      content="Hồ sơ cá nhân của Lục Văn Sơn (ShadyFyrix), tổng hợp các sản phẩm AI thị giác, xử lý âm thanh, hệ thống web, thành tựu và kênh kết nối."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Lục Văn Sơn, Kỹ sư Phần mềm và Ứng dụng AI" />
+    <meta
+      property="og:description"
+      content="Các sản phẩm phần mềm, nghiên cứu ứng dụng AI, cột mốc thành tựu và trang mạng cá nhân của Lục Văn Sơn."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500&family=Archivo:wght@400;500&family=Oswald:wght@700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window.hallmarkSlots = (m) => {
+        for (const [k, v] of Object.entries(m)) {
+          const s = document.querySelector(`[data-slot="${k}"]`);
+          if (!s) continue;
+          const im = new Image();
+          im.src = typeof v === 'string' ? v : v.src;
+          im.alt = (typeof v === 'object' && v.alt) || s.dataset.alt || '';
+          s.querySelectorAll(':scope > img').forEach((o) => o.remove());
+          s.prepend(im);
+        }
+      };
+      document.querySelectorAll('[data-slot] img').forEach((i) => {
+        if (i.complete && !i.naturalWidth) i.remove();
+        else i.addEventListener('error', () => i.remove(), { once: true });
+      });
+    </script>
+  </body>
+</html>

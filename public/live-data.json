@@ -1,0 +1,200 @@
+{
+  "syncedAt": "2026-11-26T04:32:59.321Z",
+  "sources": {
+    "github": "snapshot",
+    "youtube": "live",
+    "steam": "live"
+  },
+  "github": {
+    "login": "ShadyFyrix",
+    "name": "LucVanSon",
+    "url": "https://github.com/ShadyFyrix",
+    "avatarUrl": "https://avatars.githubusercontent.com/u/172558065?v=4",
+    "publicRepos": 15,
+    "followers": 0,
+    "following": 0,
+    "updatedAt": "2026-11-25T08:37:50Z",
+    "repos": [
+      {
+        "name": "K23CNT3-LucVanSon-2310900087-DATN",
+        "description": "",
+        "language": "TypeScript",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2026-11-10T09:52:56Z",
+        "url": "https://github.com/ShadyFyrix/K23CNT3-LucVanSon-2310900087-DATN"
+      },
+      {
+        "name": "TTTN-UngDungDeepLearning",
+        "description": "",
+        "language": "Code",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2026-09-07T05:53:11Z",
+        "url": "https://github.com/ShadyFyrix/TTTN-UngDungDeepLearning"
+      },
+      {
+        "name": "Ma-at-Zessou",
+        "description": "Solo Dev Hybrid Action-Rhythm & Platformer 2D ",
+        "language": "Code",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2026-06-09T16:58:27Z",
+        "url": "https://github.com/ShadyFyrix/Ma-at-Zessou"
+      },
+      {
+        "name": "K23CNT3_LucVanSon_2310900087_Project4",
+        "description": "",
+        "language": "PHP",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2026-05-04T20:06:53Z",
+        "url": "https://github.com/ShadyFyrix/K23CNT3_LucVanSon_2310900087_Project4"
+      },
+      {
+        "name": "NGIENCUUKHOAHOC.QLCSVC-AI",
+        "description": "",
+        "language": "Code",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2026-03-09T16:17:21Z",
+        "url": "https://github.com/ShadyFyrix/NGIENCUUKHOAHOC.QLCSVC-AI"
+      },
+      {
+        "name": "K23CNT3-LucVanSon-2310900087-DHNT",
+        "description": "",
+        "language": "Code",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2026-03-09T16:11:49Z",
+        "url": "https://github.com/ShadyFyrix/K23CNT3-LucVanSon-2310900087-DHNT"
+      },
+      {
+        "name": "K23CNT3-LucVanSon-2310900087-TTC--PRJ3",
+        "description": "",
+        "language": "Code",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2025-10-20T13:17:37Z",
+        "url": "https://github.com/ShadyFyrix/K23CNT3-LucVanSon-2310900087-TTC--PRJ3"
+      },
+      {
+        "name": "LucVanSon-Project2",
+        "description": "",
+        "language": "HTML",
+        "stars": 0,
+        "forks": 0,
+        "updatedAt": "2025-10-13T06:49:07Z",
+        "url": "https://github.com/ShadyFyrix/LucVanSon-Project2"
+      }
+    ]
+  },
+  "youtube": {
+    "channelId": "UCuVY4mCTkFOJye1hIoLr6Jg",
+    "handle": "@BetterCallShady",
+    "name": "ShadyFyrix",
+    "url": "https://www.youtube.com/@BetterCallShady",
+    "subscribers": 752,
+    "subscribersText": "752",
+    "videoCount": 104,
+    "joinedYear": 2019,
+    "featuredVideo": {
+      "title": "PULLING MUELSYSE AND HO'OLHEYAK | Arknights",
+      "views": 8533,
+      "url": "https://www.youtube.com/@BetterCallShady"
+    },
+    "videos": [
+      {
+        "videoId": "VFC8b5MUwGU",
+        "title": "Tai nạn ở bình nguyên vô vọng 💀",
+        "url": "https://www.youtube.com/watch?v=VFC8b5MUwGU",
+        "thumbnail": "https://i3.ytimg.com/vi/VFC8b5MUwGU/hqdefault.jpg",
+        "publishedAt": "2026-09-06T20:28:49+00:00",
+        "views": 62
+      },
+      {
+        "videoId": "TbNRdSJjFoI",
+        "title": "Mommy, I want milk 🍼🍼",
+        "url": "https://www.youtube.com/watch?v=TbNRdSJjFoI",
+        "thumbnail": "https://i1.ytimg.com/vi/TbNRdSJjFoI/hqdefault.jpg",
+        "publishedAt": "2026-08-09T15:16:23+00:00",
+        "views": 112
+      },
+      {
+        "videoId": "YTc1n1audQU",
+        "title": "Raul Double Jumpuaaa Sever 🗣️🗣️🔥🔥🔥",
+        "url": "https://www.youtube.com/watch?v=YTc1n1audQU",
+        "thumbnail": "https://i2.ytimg.com/vi/YTc1n1audQU/hqdefault.jpg",
+        "publishedAt": "2025-12-06T23:13:13+00:00",
+        "views": 2433
+      },
+      {
+        "videoId": "LIeknrWCPWs",
+        "title": "The weirdest event I've ever played in Wuthering Waves",
+        "url": "https://www.youtube.com/watch?v=LIeknrWCPWs",
+        "thumbnail": "https://i1.ytimg.com/vi/LIeknrWCPWs/hqdefault.jpg",
+        "publishedAt": "2025-09-23T18:39:23+00:00",
+        "views": 115
+      },
+      {
+        "videoId": "FB5GJ1oj1lY",
+        "title": "How my cute little Mon3tr played with my originium",
+        "url": "https://www.youtube.com/watch?v=FB5GJ1oj1lY",
+        "thumbnail": "https://i3.ytimg.com/vi/FB5GJ1oj1lY/hqdefault.jpg",
+        "publishedAt": "2025-09-17T05:20:39+00:00",
+        "views": 1362
+      },
+      {
+        "videoId": "DdqFp38-yXg",
+        "title": "No Yu For You",
+        "url": "https://www.youtube.com/watch?v=DdqFp38-yXg",
+        "thumbnail": "https://i1.ytimg.com/vi/DdqFp38-yXg/hqdefault.jpg",
+        "publishedAt": "2025-07-21T18:01:48+00:00",
+        "views": 72
+      }
+    ]
+  },
+  "steam": {
+    "profileName": "ShadyFyrixVN",
+    "realName": "Lục Văn Sơn",
+    "url": "https://steamcommunity.com/id/BetterCallShady/",
+    "onlineState": "Online",
+    "onlineCode": 1,
+    "currentGame": null,
+    "level": 9,
+    "yearsOfService": 7,
+    "xp": 968,
+    "gamesCount": 56,
+    "badgesCount": 6,
+    "profileAwards": 8,
+    "friendsCount": 17,
+    "recentHours2Weeks": 1.8,
+    "recentGames": [
+      {
+        "name": "The Spike Cross",
+        "hoursTotal": 91.7,
+        "hours2Weeks": 1.5,
+        "lastPlayed": "Recent"
+      },
+      {
+        "name": "AnimaEngine",
+        "hoursTotal": 0.1,
+        "hours2Weeks": 0.1,
+        "lastPlayed": "Recent"
+      },
+      {
+        "name": "OBS Studio",
+        "hoursTotal": 18.6,
+        "hours2Weeks": 0.1,
+        "lastPlayed": "Recent"
+      }
+    ]
+  },
+  "facebook": {
+    "name": "Lục Văn Sơn (ShadyFyrix)",
+    "handle": "ShadyFyrix00",
+    "url": "https://www.facebook.com/ShadyFyrix00",
+    "friendsCount": 600,
+    "hometown": "Hương Bá Thước, Thanh Hóa"
+  }
+}

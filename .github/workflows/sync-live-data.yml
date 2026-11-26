@@ -1,0 +1,38 @@
+name: Sync Live Profile Data
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch live data from GitHub, YouTube, and Steam
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_ID64: '76561198904940621'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run sync:live
+
+      - name: Commit snapshot when changed
+        run: |
+          if [ -n "$(git status --porcelain public/live-data.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/live-data.json
+            git commit -m "chore: sync live portfolio metrics [skip ci]"
+            git push
+          fi
