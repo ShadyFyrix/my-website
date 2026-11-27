@@ -3,6 +3,9 @@
   "name": "shadyfyrix",
   "main": "worker.mjs",
   "compatibility_date": "2026-11-26",
+  "vars": {
+    "STEAM_ID64": "76561198904940621"
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
