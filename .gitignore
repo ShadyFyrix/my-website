@@ -7,3 +7,8 @@ dist/
 .hallmark/shots/
 .hallmark/before/
 .wrangler/
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/live/
+.impeccable/config.local.json

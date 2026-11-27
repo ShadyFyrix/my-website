@@ -5,6 +5,7 @@ import { liveSyncPlugin } from './vite-plugin-live-sync.ts';
 export default defineConfig({
   plugins: [react(), liveSyncPlugin()],
   build: {
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks(id) {

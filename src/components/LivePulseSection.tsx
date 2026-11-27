@@ -10,12 +10,13 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import type { LiveFeedSnapshot } from '../data/types';
+import { useSpatial } from './SpatialContext';
 import {
   AnimatedCounter,
   AnimatedRule,
+  DepthSurface,
   RevealBlock,
-  TiltPlate,
-} from './MotionPrimitives';
+} from './SpatialFX';
 
 interface LivePulseSectionProps {
   data: LiveFeedSnapshot;
@@ -55,6 +56,10 @@ function formatCountdown(sec: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+function formatPublicRepoName(name: string): string {
+  return name.replace(/[-_]?2310900087/g, '').replace(/--+/g, '-').replace(/__+/g, '_');
+}
+
 export function LivePulseSection({
   data,
   isSyncing,
@@ -63,17 +68,20 @@ export function LivePulseSection({
   onRefresh,
 }: LivePulseSectionProps) {
   const { locale } = useLanguage();
+  const { triggerShockwave } = useSpatial();
   const [marqueePaused, setMarqueePaused] = useState(false);
 
   const marqueeItems = [
-    ...data.github.repos.slice(0, 3).map((repo) => `GitHub: ${repo.name} (${repo.language})`),
-    ...data.youtube.videos.slice(0, 3).map((vid) => `YouTube: ${vid.title}`),
-    ...data.steam.recentGames.map((g) => `Steam: ${g.name} (${g.hoursTotal}h)`),
+    ...data.github.repos
+      .slice(0, 3)
+      .map((repo) => `GitHub · ${formatPublicRepoName(repo.name)} (${repo.language})`),
+    ...data.youtube.videos.slice(0, 3).map((vid) => `YouTube · ${vid.title}`),
+    ...data.steam.recentGames.map((g) => `Steam · ${g.name} (${g.hoursTotal}h)`),
   ];
 
-  const sourceBadge = (state: 'live' | 'snapshot', label: string) => (
-    <span className={`source-chip ${state === 'live' ? 'source-chip--live' : ''}`}>
-      <span className="source-chip__dot" aria-hidden="true" />
+  const sourceChip = (state: 'live' | 'snapshot', label: string) => (
+    <span className={`signal-chip ${state === 'live' ? 'signal-chip--live' : ''}`}>
+      <span className="signal-chip__dot" aria-hidden="true" />
       <span>
         {label}: {state === 'live' ? 'Live' : 'Synced'}
       </span>
@@ -82,16 +90,19 @@ export function LivePulseSection({
 
   return (
     <section
-      className="section section--cast"
+      className="section section--band-a"
       id="live"
       aria-labelledby="live-heading"
     >
       <div className="container">
-        <AnimatedRule />
-        <div className="section__head section__head--plain live-head">
+        <AnimatedRule
+          sectionIndex="01"
+          sectionLabel={locale === 'vi' ? 'HOẠT ĐỘNG LIVE' : 'LIVE ACTIVITY'}
+        />
+        <div className="section__head live-head">
           <div>
             <h2 id="live-heading">
-              {locale === 'vi' ? 'DỮ LIỆU THỰC VÀ HOẠT ĐỘNG' : 'LIVE DATA AND ACTIVITY'}
+              {locale === 'vi' ? 'DỮ LIỆU THỰC & HOẠT ĐỘNG' : 'LIVE TELEMETRY & ACTIVITY'}
             </h2>
           </div>
 
@@ -99,24 +110,27 @@ export function LivePulseSection({
             <div className="live-toolbar__meta">
               <span className="live-pill">
                 <span className="live-pill__dot" aria-hidden="true" />
-                <span>
-                  {locale === 'vi' ? 'Cập nhật lúc' : 'Synced'}: {formatTime(data.syncedAt, locale)}
+                <span className="mono-num">
+                  {locale === 'vi' ? 'Đồng bộ' : 'Synced'} {formatTime(data.syncedAt, locale)}
                 </span>
               </span>
-              <span className="num-year live-countdown">
-                {locale === 'vi' ? 'Tự đồng bộ' : 'Auto sync'}: {formatCountdown(nextSyncIn)}
+              <span className="mono-num live-countdown">
+                {locale === 'vi' ? 'Chu kỳ tiếp' : 'Next cycle'} · {formatCountdown(nextSyncIn)}
               </span>
             </div>
 
             <button
               type="button"
-              className="btn btn--secondary btn--compact"
-              onClick={onRefresh}
+              className="btn btn--ghost btn--compact"
+              onClick={() => {
+                triggerShockwave(0.95, 0);
+                onRefresh();
+              }}
               disabled={isSyncing}
               aria-busy={isSyncing}
             >
               <RefreshCw
-                size={16}
+                size={15}
                 className={isSyncing ? 'spin-icon' : ''}
                 aria-hidden="true"
               />
@@ -134,15 +148,57 @@ export function LivePulseSection({
         </div>
 
         <div className="live-sources" aria-label="Sync sources">
-          {sourceBadge(data.sources.github, 'GitHub')}
-          {sourceBadge(data.sources.youtube, 'YouTube')}
-          {sourceBadge(data.sources.steam, 'Steam')}
-          <span className="source-chip">
-            <span>Mode: {mode}</span>
+          {sourceChip(data.sources.github, 'GitHub')}
+          {sourceChip(data.sources.youtube, 'YouTube')}
+          {sourceChip(data.sources.steam, 'Steam')}
+          <span className="signal-chip mono-num">
+            {mode === 'api'
+              ? locale === 'vi'
+                ? 'Edge Live'
+                : 'Edge Live'
+              : mode === 'hybrid'
+                ? 'Hybrid Live'
+                : 'Snapshot'}
           </span>
         </div>
 
-        {/* Kinetic Marquee with accessible pause/play control */}
+        {/* Unified Telemetry Ribbon — replaces repetitive separate stat boxes */}
+        <RevealBlock>
+          <div className="telemetry-ribbon">
+            <div className="telemetry-cell">
+              <AnimatedCounter value={data.github.publicRepos} className="telemetry-cell__num" />
+              <p className="telemetry-cell__label">
+                {locale === 'vi' ? 'Kho GitHub công khai' : 'Public GitHub repos'}
+              </p>
+            </div>
+            <div className="telemetry-cell">
+              <AnimatedCounter
+                value={data.youtube.subscribers}
+                suffix="+"
+                className="telemetry-cell__num"
+              />
+              <p className="telemetry-cell__label">
+                {locale === 'vi' ? 'Đăng ký @BetterCallShady' : 'YouTube subscribers'}
+              </p>
+            </div>
+            <div className="telemetry-cell">
+              <AnimatedCounter value={data.youtube.videoCount} className="telemetry-cell__num" />
+              <p className="telemetry-cell__label">
+                {locale === 'vi' ? 'Video xuất bản từ 2019' : 'Published videos since 2019'}
+              </p>
+            </div>
+            <div className="telemetry-cell">
+              <AnimatedCounter value={data.steam.gamesCount} className="telemetry-cell__num" />
+              <p className="telemetry-cell__label">
+                {locale === 'vi'
+                  ? `Game Steam (Lv.${data.steam.level} · ${data.steam.yearsOfService} năm)`
+                  : `Steam library (Lv.${data.steam.level} · ${data.steam.yearsOfService} yrs)`}
+              </p>
+            </div>
+          </div>
+        </RevealBlock>
+
+        {/* Accessible Kinetic Ticker */}
         <div className="marquee-bar">
           <div className={`marquee-track-wrap ${marqueePaused ? 'is-paused' : ''}`}>
             <div className="marquee-track">
@@ -155,54 +211,33 @@ export function LivePulseSection({
           </div>
           <button
             type="button"
-            className="viewer3d__btn marquee-toggle"
+            className="dock-btn marquee-toggle"
             aria-pressed={marqueePaused}
             onClick={() => setMarqueePaused((prev) => !prev)}
           >
-            {marqueePaused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
-            <span>{marqueePaused ? (locale === 'vi' ? 'Chạy' : 'Play') : locale === 'vi' ? 'Dừng' : 'Pause'}</span>
+            {marqueePaused ? (
+              <Play size={14} aria-hidden="true" />
+            ) : (
+              <Pause size={14} aria-hidden="true" />
+            )}
+            <span>
+              {marqueePaused
+                ? locale === 'vi'
+                  ? 'Chạy'
+                  : 'Play'
+                : locale === 'vi'
+                  ? 'Dừng'
+                  : 'Pause'}
+            </span>
           </button>
         </div>
 
-        {/* 4 Live Animated Stat Counters */}
-        <RevealBlock>
-          <div className="live-stats">
-            <div className="live-stat">
-              <AnimatedCounter value={data.github.publicRepos} className="live-stat__num" />
-              <p className="live-stat__label">
-                {locale === 'vi' ? 'Kho mã nguồn GitHub công khai' : 'Public GitHub repositories'}
-              </p>
-            </div>
-            <div className="live-stat">
-              <AnimatedCounter value={data.youtube.subscribers} suffix="+" className="live-stat__num" />
-              <p className="live-stat__label">
-                {locale === 'vi' ? 'Người đăng ký YouTube @BetterCallShady' : 'YouTube subscribers'}
-              </p>
-            </div>
-            <div className="live-stat">
-              <AnimatedCounter value={data.youtube.videoCount} className="live-stat__num" />
-              <p className="live-stat__label">
-                {locale === 'vi' ? 'Video đã đăng tải từ 2019' : 'Published videos since 2019'}
-              </p>
-            </div>
-            <div className="live-stat">
-              <AnimatedCounter value={data.steam.gamesCount} className="live-stat__num" />
-              <p className="live-stat__label">
-                {locale === 'vi'
-                  ? `Game Steam (Level ${data.steam.level}, ${data.steam.yearsOfService} năm)`
-                  : `Steam library (Level ${data.steam.level}, ${data.steam.yearsOfService} yrs)`}
-              </p>
-            </div>
-          </div>
-        </RevealBlock>
-
-        {/* 3 Live Channel Panels */}
+        {/* Asymmetric Spatial Live Feeds */}
         <div className="live-panels">
-          {/* YouTube Channel & Videos */}
-          <TiltPlate className="live-panel live-panel--youtube" maxTilt={2.5}>
+          <DepthSurface className="live-panel live-panel--youtube" maxTilt={2.2}>
             <div className="live-panel__head">
               <div className="live-panel__title-wrap">
-                <Video size={20} aria-hidden="true" />
+                <Video size={18} aria-hidden="true" />
                 <h3>YouTube @BetterCallShady</h3>
               </div>
               <a
@@ -212,7 +247,7 @@ export function LivePulseSection({
                 rel="noopener noreferrer"
               >
                 <span>{locale === 'vi' ? 'Mở kênh' : 'Channel'}</span>
-                <ArrowUpRight size={16} aria-hidden="true" />
+                <ArrowUpRight size={15} aria-hidden="true" />
               </a>
             </div>
 
@@ -221,6 +256,7 @@ export function LivePulseSection({
                 <a
                   key={video.videoId}
                   className="yt-card"
+                  data-cursor="play"
                   href={video.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -234,27 +270,26 @@ export function LivePulseSection({
                       alt={video.title}
                     />
                     <span className="yt-card__play" aria-hidden="true">
-                      <Play size={16} />
+                      <Play size={15} />
                     </span>
                   </div>
                   <div className="yt-card__body">
                     <p className="yt-card__title">{video.title}</p>
-                    <p className="yt-card__meta num-year">
+                    <p className="yt-card__meta mono-num">
                       {video.views.toLocaleString('en-US')}{' '}
-                      {locale === 'vi' ? 'lượt xem' : 'views'} /{' '}
+                      {locale === 'vi' ? 'lượt xem' : 'views'} ·{' '}
                       {formatDateShort(video.publishedAt, locale)}
                     </p>
                   </div>
                 </a>
               ))}
             </div>
-          </TiltPlate>
+          </DepthSurface>
 
-          {/* GitHub Live Repositories */}
-          <TiltPlate className="live-panel" maxTilt={2.8}>
+          <DepthSurface className="live-panel" maxTilt={2.6}>
             <div className="live-panel__head">
               <div className="live-panel__title-wrap">
-                <Code2 size={20} aria-hidden="true" />
+                <Code2 size={18} aria-hidden="true" />
                 <h3>GitHub @ShadyFyrix</h3>
               </div>
               <a
@@ -264,7 +299,7 @@ export function LivePulseSection({
                 rel="noopener noreferrer"
               >
                 <span>GitHub</span>
-                <ArrowUpRight size={16} aria-hidden="true" />
+                <ArrowUpRight size={15} aria-hidden="true" />
               </a>
             </div>
 
@@ -278,23 +313,22 @@ export function LivePulseSection({
                     rel="noopener noreferrer"
                   >
                     <div>
-                      <p className="repo-list__name">{repo.name}</p>
-                      <p className="repo-list__meta">
-                        {repo.language} / {formatDateShort(repo.updatedAt, locale)}
+                      <p className="repo-list__name">{formatPublicRepoName(repo.name)}</p>
+                      <p className="repo-list__meta mono-num">
+                        {repo.language} · {formatDateShort(repo.updatedAt, locale)}
                       </p>
                     </div>
-                    <ArrowUpRight size={16} aria-hidden="true" />
+                    <ArrowUpRight size={15} aria-hidden="true" />
                   </a>
                 </li>
               ))}
             </ul>
-          </TiltPlate>
+          </DepthSurface>
 
-          {/* Steam Profile & Activity */}
-          <TiltPlate className="live-panel" maxTilt={2.8}>
+          <DepthSurface className="live-panel" maxTilt={2.6}>
             <div className="live-panel__head">
               <div className="live-panel__title-wrap">
-                <Gamepad2 size={20} aria-hidden="true" />
+                <Gamepad2 size={18} aria-hidden="true" />
                 <h3>Steam {data.steam.profileName}</h3>
               </div>
               <a
@@ -304,23 +338,23 @@ export function LivePulseSection({
                 rel="noopener noreferrer"
               >
                 <span>Steam</span>
-                <ArrowUpRight size={16} aria-hidden="true" />
+                <ArrowUpRight size={15} aria-hidden="true" />
               </a>
             </div>
 
             <div className="steam-badges">
-              <span className="steam-tag num-year">{data.steam.onlineState}</span>
-              <span className="steam-tag num-year">Level {data.steam.level}</span>
-              <span className="steam-tag num-year">
+              <span className="steam-tag mono-num">{data.steam.onlineState}</span>
+              <span className="steam-tag mono-num">Level {data.steam.level}</span>
+              <span className="steam-tag mono-num">
                 {data.steam.yearsOfService} {locale === 'vi' ? 'năm' : 'yrs'}
               </span>
-              <span className="steam-tag num-year">
+              <span className="steam-tag mono-num">
                 {data.steam.gamesCount} {locale === 'vi' ? 'game' : 'games'}
               </span>
-              <span className="steam-tag num-year">
+              <span className="steam-tag mono-num">
                 {data.steam.badgesCount} {locale === 'vi' ? 'huy hiệu' : 'badges'}
               </span>
-              <span className="steam-tag num-year">
+              <span className="steam-tag mono-num">
                 {data.steam.friendsCount} {locale === 'vi' ? 'bạn bè' : 'friends'}
               </span>
             </div>
@@ -333,7 +367,7 @@ export function LivePulseSection({
                   <li className="steam-game" key={game.name}>
                     <div className="steam-game__top">
                       <span className="steam-game__name">{game.name}</span>
-                      <span className="num-year steam-game__hours">{game.hoursTotal}h</span>
+                      <span className="mono-num steam-game__hours">{game.hoursTotal}h</span>
                     </div>
                     <div className="steam-game__track" aria-hidden="true">
                       <div className="steam-game__bar" style={{ width: `${pct}%` }} />
@@ -342,7 +376,7 @@ export function LivePulseSection({
                 );
               })}
             </ul>
-          </TiltPlate>
+          </DepthSurface>
         </div>
       </div>
     </section>

@@ -7,28 +7,28 @@ export const PROFILE: ProfileData = {
   },
   handle: 'ShadyFyrix',
   documentTitle: {
-    vi: 'Lục Văn Sơn (ShadyFyrix), Kỹ sư AI, Web và Sáng tạo 3D',
-    en: 'Luc Van Son (ShadyFyrix), AI, Web and 3D Creator',
+    vi: 'ShadyFyrix (BetterCallShady) — Official Website',
+    en: 'ShadyFyrix (BetterCallShady) — Official Website',
   },
   heroHeadline: {
-    vi: 'LỤC VĂN SƠN, KỸ SƯ AI VÀ WEB',
-    en: 'LUC VAN SON, AI AND WEB ENGINEER',
+    vi: 'BETTER CALL SHADY',
+    en: 'BETTER CALL SHADY',
   },
   heroLead: {
-    vi: 'Xây dựng phần mềm thị giác AI, xử lý âm thanh, web và mô hình 3D.',
-    en: 'Building computer vision, real-time audio, full-stack web, and 3D mods.',
+    vi: 'Trang cá nhân của Lục Văn Sơn — chia sẻ dự án phần mềm, mô hình 3D, game indie và những thứ mình đang chơi.',
+    en: 'Personal space of Luc Van Son — sharing software builds, 3D models, indie games, and what I am playing.',
   },
   aboutHeading: {
-    vi: 'TỪ PHÒNG LAB ĐẾN SÁNG TẠO SỐ',
-    en: 'FROM LAB TO DIGITAL CRAFT',
+    vi: 'VỀ MÌNH · LỤC VĂN SƠN',
+    en: 'ABOUT ME · LUC VAN SON',
   },
   aboutLead: {
-    vi: 'Kết nối kỹ thuật phần mềm thực chiến với sáng tạo game, âm thanh và nội dung số.',
-    en: 'Bridging applied software engineering with game modding, audio tools, and video creation.',
+    vi: 'Từ code AI & Web đến mod 3D Minecraft, làm game indie và kênh YouTube @BetterCallShady.',
+    en: 'From AI & Web engineering to Minecraft 3D gunpacks, indie game dev, and YouTube @BetterCallShady.',
   },
   aboutBio: {
-    vi: 'Quê tại Hương Bá Thước, Thanh Hóa và đang học Công nghệ Thông tin K23CNT3 tại Đại học Nguyễn Trãi, Hà Nội. Tôi phát triển phần mềm kết nối React, Python, Node.js cùng mô hình AI thời gian thực, game 2D và gói vũ khí 3D Bedrock.',
-    en: 'From Huong Ba Thuoc, Thanh Hoa, currently studying IT K23CNT3 at Nguyen Trai University in Hanoi. I build software linking React, Python, and Node.js with real-time AI inference, 2D indie games, and 3D Bedrock weapon packs.',
+    vi: 'Mình là Lục Văn Sơn (ShadyFyrix), quê ở Hương Bá Thước, Thanh Hóa và hiện học CNTT K23CNT3 tại Đại học Nguyễn Trãi, Hà Nội. Mình thích biến những ý tưởng công nghệ thành sản phẩm chạy thật: từ hệ thống nhận diện AI, công cụ đồng bộ nhạc FFT, game 2D cho đến gói vũ khí 3D Bedrock.',
+    en: 'I am Luc Van Son (ShadyFyrix), from Huong Ba Thuoc, Thanh Hoa and studying IT K23CNT3 at Nguyen Trai University in Hanoi. I love turning ideas into working builds — from computer vision AI and FFT audio tools to 2D games and 3D Bedrock weapon packs.',
   },
   portraitSrc: '/images/portrait/shadyfyrix-avatar.png',
   portraitWidth: 460,
@@ -43,10 +43,10 @@ export const PROFILE: ProfileData = {
   },
   specs: [
     {
-      label: { vi: 'Định hướng', en: 'Focus' },
+      label: { vi: 'Mình hay làm', en: 'What I build' },
       value: {
-        vi: 'Full-Stack, AI Ứng dụng và Sáng tạo 3D / Game',
-        en: 'Full-Stack, Applied AI and 3D / Game Creation',
+        vi: 'Full-Stack Web, AI Ứng dụng, Mod 3D & Game Indie',
+        en: 'Full-Stack Web, Applied AI, 3D Mods & Indie Games',
       },
     },
     {

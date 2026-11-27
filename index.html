@@ -3,25 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lục Văn Sơn (ShadyFyrix) — Kỹ sư AI, Web &amp; Sáng tạo 3D</title>
+    <title>ShadyFyrix (BetterCallShady) — Official Website</title>
     <link rel="canonical" href="https://shadyfyrix.id.vn/" />
     <meta name="author" content="Lục Văn Sơn (ShadyFyrix)" />
     <meta
       name="description"
-      content="Trang web cá nhân chính thức của Lục Văn Sơn (ShadyFyrix) — tổng hợp các sản phẩm AI thị giác, xử lý âm thanh, web, mô hình 3D NotGunGun, thành tựu và dữ liệu trực tiếp."
+      content="Trang web cá nhân chính thức của Lục Văn Sơn (ShadyFyrix / BetterCallShady) — tổng hợp các sản phẩm AI thị giác, xử lý âm thanh, web, mô hình 3D NotGunGun, thành tựu và dữ liệu trực tiếp."
     />
     <meta
       name="keywords"
       content="ShadyFyrix, Lục Văn Sơn, BetterCallShady, Kỹ sư AI, Web Developer, Vibe GIF Song Studio, ExamGuard AI, NotGunGun 3D"
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#141413" />
+    <meta name="theme-color" content="#05070c" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="ShadyFyrix — Lục Văn Sơn" />
+    <meta property="og:site_name" content="ShadyFyrix (BetterCallShady)" />
     <meta property="og:locale" content="vi_VN" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:url" content="https://shadyfyrix.id.vn/" />
-    <meta property="og:title" content="Lục Văn Sơn (ShadyFyrix) — Kỹ sư AI, Web &amp; Sáng tạo 3D" />
+    <meta property="og:title" content="ShadyFyrix (BetterCallShady) — Official Website" />
     <meta
       property="og:description"
       content="Sản phẩm phần mềm, nghiên cứu AI, mô hình 3D tương tác, thành tựu và dữ liệu live GitHub · YouTube · Steam của Lục Văn Sơn (ShadyFyrix)."
@@ -31,7 +31,7 @@
     <meta property="og:image:height" content="880" />
     <meta property="og:image:alt" content="Trang cá nhân Lục Văn Sơn (ShadyFyrix)" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Lục Văn Sơn (ShadyFyrix) — Kỹ sư AI, Web &amp; Sáng tạo 3D" />
+    <meta name="twitter:title" content="ShadyFyrix (BetterCallShady) — Official Website" />
     <meta
       name="twitter:description"
       content="Sản phẩm phần mềm, nghiên cứu AI, mô hình 3D tương tác và dữ liệu live của Lục Văn Sơn (ShadyFyrix)."
@@ -65,33 +65,19 @@
         ]
       }
     </script>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500&family=Archivo:wght@400;500&family=Oswald:wght@700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      window.hallmarkSlots = (m) => {
-        for (const [k, v] of Object.entries(m)) {
-          const s = document.querySelector(`[data-slot="${k}"]`);
-          if (!s) continue;
-          const im = new Image();
-          im.src = typeof v === 'string' ? v : v.src;
-          im.alt = (typeof v === 'object' && v.alt) || s.dataset.alt || '';
-          s.querySelectorAll(':scope > img').forEach((o) => o.remove());
-          s.prepend(im);
-        }
-      };
-      document.querySelectorAll('[data-slot] img').forEach((i) => {
-        if (i.complete && !i.naturalWidth) i.remove();
-        else i.addEventListener('error', () => i.remove(), { once: true });
-      });
-    </script>
   </body>
 </html>

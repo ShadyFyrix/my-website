@@ -2,18 +2,20 @@ import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { PROFILE } from '../data/profile';
-import { ScrollProgressRail } from './MotionPrimitives';
+import { ScrollProgressRail } from './SpatialFX';
+import { useSpatial } from './SpatialContext';
 
 const NAV_ITEMS = [
   { href: '#live', label: { vi: 'Live', en: 'Live' } },
-  { href: '#about', label: { vi: 'Giới thiệu', en: 'About' } },
   { href: '#products', label: { vi: 'Sản phẩm', en: 'Products' } },
+  { href: '#about', label: { vi: 'Giới thiệu', en: 'About' } },
   { href: '#achievements', label: { vi: 'Thành tựu', en: 'Achievements' } },
   { href: '#connect', label: { vi: 'Kết nối', en: 'Connect' } },
 ];
 
 export function Navbar() {
   const { locale, toggleLocale, t } = useLanguage();
+  const { triggerShockwave } = useSpatial();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -24,9 +26,20 @@ export function Navbar() {
       <header className="site-nav" id="top">
         <div className="container">
           <div className="site-nav__inner">
-            <a className="site-nav__brand" href="#top" aria-label={t(PROFILE.name)}>
-              <span className="site-nav__mark" aria-hidden="true" />
-              <span>{t(PROFILE.name)}</span>
+            <a
+              className="site-nav__brand"
+              href="#top"
+              aria-label={t(PROFILE.name)}
+              onClick={() => triggerShockwave(0.55, 0)}
+            >
+              <img
+                src="/brand-logo.png"
+                width={38}
+                height={38}
+                alt="ShadyFyrix Logo"
+                className="site-nav__logo"
+              />
+              <span>{PROFILE.handle}</span>
             </a>
 
             <nav
@@ -36,22 +49,32 @@ export function Navbar() {
               <ul className="site-nav__links">
                 {NAV_ITEMS.map((item) => (
                   <li key={item.href}>
-                    <a className="site-nav__link" href={item.href}>
+                    <a
+                      className="site-nav__link"
+                      href={item.href}
+                      onClick={() => triggerShockwave(0.35, 0)}
+                    >
                       {t(item.label)}
                     </a>
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                className="site-nav__lang"
-                onClick={toggleLocale}
-                aria-label={
-                  locale === 'vi' ? 'Chuyển sang tiếng Anh' : 'Switch to Vietnamese'
-                }
-              >
-                {locale === 'vi' ? 'EN' : 'VI'}
-              </button>
+
+              <div className="site-nav__tools">
+                <button
+                  type="button"
+                  className="site-nav__lang"
+                  onClick={() => {
+                    toggleLocale();
+                    triggerShockwave(0.45, 2);
+                  }}
+                  aria-label={
+                    locale === 'vi' ? 'Chuyển sang tiếng Anh' : 'Switch to Vietnamese'
+                  }
+                >
+                  {locale === 'vi' ? 'EN' : 'VI'}
+                </button>
+              </div>
             </nav>
 
             <div className="site-nav__mobile-controls">
@@ -100,7 +123,10 @@ export function Navbar() {
                     <a
                       className="site-nav__drawer-link"
                       href={item.href}
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        triggerShockwave(0.4, 0);
+                      }}
                     >
                       {t(item.label)}
                     </a>

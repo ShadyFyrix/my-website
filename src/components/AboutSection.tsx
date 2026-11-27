@@ -1,17 +1,21 @@
 import { useLanguage } from '../i18n/LanguageContext';
 import { PROFILE } from '../data/profile';
-import { RevealBlock, TiltPlate } from './MotionPrimitives';
+import { AnimatedRule, DepthSurface, ParallaxFrame, RevealBlock } from './SpatialFX';
 
 export function AboutSection() {
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
 
   return (
-    <section className="section" id="about" aria-labelledby="about-heading">
+    <section className="section section--band-a" id="about" aria-labelledby="about-heading">
       <div className="container">
+        <AnimatedRule
+          sectionIndex="03"
+          sectionLabel={locale === 'vi' ? 'GIỚI THIỆU' : 'ABOUT'}
+        />
         <div className="about__grid">
           <RevealBlock className="about__content">
             <h2 id="about-heading">{t(PROFILE.aboutHeading)}</h2>
-            <p className="lead">{t(PROFILE.aboutLead)}</p>
+            <p className="lead about__lead">{t(PROFILE.aboutLead)}</p>
             <p className="about__bio">{t(PROFILE.aboutBio)}</p>
 
             <dl className="spec-list">
@@ -24,24 +28,18 @@ export function AboutSection() {
             </dl>
           </RevealBlock>
 
-          <RevealBlock delay={0.12}>
+          <RevealBlock delay={0.1}>
             <figure className="about__figure">
-              <TiltPlate className="portrait-plate" maxTilt={4}>
-                <div
-                  className="portrait-slot portrait-slot--avatar"
-                  data-slot="portrait"
-                  data-kind="product"
-                  data-alt={t(PROFILE.portraitAlt)}
-                >
+              <DepthSurface className="portrait-plate" maxTilt={4.5} beamAlwaysOn>
+                <ParallaxFrame className="portrait-slot" offset={22}>
                   <img
                     src={PROFILE.portraitSrc}
                     width={PROFILE.portraitWidth}
                     height={PROFILE.portraitHeight}
-                    loading="lazy"
                     alt={t(PROFILE.portraitAlt)}
                   />
-                </div>
-              </TiltPlate>
+                </ParallaxFrame>
+              </DepthSurface>
               <figcaption className="figure-caption">{t(PROFILE.portraitCaption)}</figcaption>
             </figure>
           </RevealBlock>

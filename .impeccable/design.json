@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-28T01:00:00+07:00",
+  "title": "Design System: ShadyFyrix Spatial 3D Web",
+  "extensions": {
+    "colorMeta": {
+      "plasma-cyan": {
+        "role": "primary",
+        "displayName": "Plasma Cyan",
+        "canonical": "#36e5ff",
+        "tonalRamp": ["#04131a", "#082d3b", "#0d5168", "#1582a1", "#22b8d8", "#36e5ff", "#85f1ff", "#d8fbff"]
+      },
+      "electric-cobalt": {
+        "role": "secondary",
+        "displayName": "Electric Cobalt",
+        "canonical": "#3d7bff",
+        "tonalRamp": ["#09132e", "#12275c", "#1d3d8f", "#2b59cc", "#3d7bff", "#6e9eff", "#a9c5ff", "#e2ecff"]
+      },
+      "solar-ember": {
+        "role": "tertiary",
+        "displayName": "Solar Ember",
+        "canonical": "#ff6a45",
+        "tonalRamp": ["#260c06", "#541a0d", "#8a2d17", "#c44223", "#ff6a45", "#ff967a", "#ffc4b3", "#ffece6"]
+      },
+      "abyss": {
+        "role": "neutral",
+        "displayName": "Abyss Obsidian",
+        "canonical": "#05070c",
+        "tonalRamp": ["#05070c", "#0a101c", "#121b2e", "#202e4a", "#3d5175", "#768db5", "#b7c6e0", "#f2f6ff"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Opening personal hero headline (BETTER CALL SHADY / SHADYFYRIX)." },
+      "headline": { "displayName": "Section Headline", "purpose": "Primary chapter headings across the landing page." },
+      "title": { "displayName": "Card & Item Title", "purpose": "Product titles, channel headers, and achievement rows." },
+      "body": { "displayName": "Body", "purpose": "Vietnamese and English prose, max 65ch measure." },
+      "label": { "displayName": "Telemetry Mono", "purpose": "Numeric counters, sync timestamps, years, and tech stack tags only." }
+    },
+    "shadows": [
+      { "name": "none-rim-only", "value": "none", "purpose": "Elevation is expressed via 1px translucent borders, WebGL spatial depth, and pointer specular sheen." }
+    ],
+    "motion": [
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Primary deceleration curve for kinetic reveals, hover states, and modal transitions." },
+      { "name": "dur-micro", "value": "140ms", "purpose": "Immediate control hover and press feedback." },
+      { "name": "dur-short", "value": "260ms", "purpose": "Border rim brightening, sheen fade, and cursor morph." },
+      { "name": "dur-long", "value": "460ms", "purpose": "Media hover zoom and spatial portal entrance." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "544px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "960px" },
+      { "name": "xl", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Pill Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "High-contrast Plasma Cyan capsule CTA used for primary navigation and direct contact actions.",
+      "html": "<button class=\"ds-btn-primary\">Xem sản phẩm của mình</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 999px; border: 1px solid #36e5ff; background: #36e5ff; color: #04131a; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 140ms cubic-bezier(0.16,1,0.3,1), transform 140ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background: #6eeeff; border-color: #6eeeff; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid #36e5ff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ghost Obsidian Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Translucent obsidian pill for secondary actions over the live WebGL stage.",
+      "html": "<button class=\"ds-btn-ghost\">Hoạt động live</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 999px; border: 1px solid rgba(183,212,255,0.14); background: rgba(11,17,29,0.72); color: #f2f6ff; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; backdrop-filter: blur(10px); transition: border-color 140ms, color 140ms, background 140ms; } .ds-btn-ghost:hover { border-color: #36e5ff; color: #36e5ff; background: rgba(16,28,48,0.85); } .ds-btn-ghost:focus-visible { outline: 2px solid #36e5ff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Spatial Dock Mode Tab",
+      "kind": "chip",
+      "refersTo": "dock-tab-active",
+      "description": "Stage switcher pill toggling between Shady Cube 3D, NotGunGun 3D, Vibe GIF FFT, and ExamGuard AI.",
+      "html": "<div style=\"display:flex;gap:8px\"><button class=\"ds-dock-tab ds-dock-tab--active\">Shady Cube 3D</button><button class=\"ds-dock-tab\">NotGunGun 3D</button></div>",
+      "css": ".ds-dock-tab { min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(183,212,255,0.14); background: rgba(16,25,42,0.55); color: #b7c6e0; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: color 140ms, border-color 140ms; } .ds-dock-tab:hover { border-color: rgba(54,229,255,0.42); color: #f2f6ff; } .ds-dock-tab--active { background: #36e5ff; border-color: #36e5ff; color: #04131a; font-weight: 600; }"
+    },
+    {
+      "name": "Depth Surface Container",
+      "kind": "card",
+      "refersTo": "depth-surface",
+      "description": "Single-elevation obsidian container with 1px translucent rim revealing the WebGL space behind it.",
+      "html": "<div class=\"ds-depth-card\"><h3 class=\"ds-depth-title\">NotGunGun Pack: Ultimatum</h3><p class=\"ds-depth-copy\">Mô hình vũ khí 3D Bedrock 63 xương kèm âm thanh OGG tùy chỉnh.</p></div>",
+      "css": ".ds-depth-card { border-radius: 14px; padding: 24px; background: rgba(11,17,29,0.78); border: 1px solid rgba(183,212,255,0.14); backdrop-filter: blur(14px); color: #f2f6ff; transition: border-color 260ms cubic-bezier(0.16,1,0.3,1); } .ds-depth-card:hover { border-color: rgba(54,229,255,0.42); } .ds-depth-title { margin: 0 0 8px; font-family: 'Unbounded', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.025em; } .ds-depth-copy { margin: 0; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.94rem; color: #b7c6e0; line-height: 1.6; }"
+    },
+    {
+      "name": "Live Signal Chip",
+      "kind": "chip",
+      "description": "Status indicator pill showing live Cloudflare Worker synchronization across GitHub, YouTube, and Steam.",
+      "html": "<span class=\"ds-signal-chip\"><span class=\"ds-signal-dot\"></span>GitHub: Live</span>",
+      "css": ".ds-signal-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(56,242,156,0.35); background: rgba(11,17,29,0.72); color: #f2f6ff; font-family: 'Be Vietnam Pro', sans-serif; font-size: 0.78rem; } .ds-signal-dot { width: 8px; height: 8px; border-radius: 50%; background: #38f29c; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cyber-Horizon Spatial Stage",
+    "overview": "This visual system frames Lục Văn Sơn's (ShadyFyrix / BetterCallShady) personal landing page as an open, full-viewport Three.js WebGL 3D universe rather than a boxed card template. A persistent fixed WebGL canvas renders a deep abyssal horizon, an infinite undulating GLSL perspective energy grid, 2,200 magnetic particles, and interactive 3D centerpieces directly behind translucent obsidian content surfaces.",
+    "keyCharacteristics": [
+      "Persistent full-viewport Three.js WebGL stage with GLSL infinite perspective grid, magnetic particles, and scroll-choreographed 3D camera flight.",
+      "Single-elevation translucent obsidian rim surfaces with pointer-tracked specular sheen and zero hard offset shadows.",
+      "Custom vector ShadyFyrix cyan-rimmed cube emblem unifying the favicon suite, navigation bar, and interactive 3D hero centerpiece.",
+      "Strictly solid high-contrast display typography (Unbounded + Be Vietnam Pro) with zero kickers and zero gradient text."
+    ],
+    "rules": [
+      {
+        "name": "The Impulse-Only Ember Rule",
+        "body": "Solar Ember (#ff6a45) appears only on active pressed states, audio shockwaves, and FFT peaks — never as a static background fill or general link color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Single-Elevation Rim Rule",
+        "body": "Surfaces declare elevation once through a crisp 1px translucent rim and pointer specular sheen, never combining borders with diffuse drop shadows or hard offset block shadows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Zero-Kicker Rule",
+        "body": "Headings stand on their own scale and weight — never place small uppercase eyebrow or kicker labels above headings.",
+        "section": "typography"
+      },
+      {
+        "name": "The Honest-Mono Rule",
+        "body": "JetBrains Mono applies strictly to numeric readouts, timestamps, years, and code/stack identifiers — never to Vietnamese prose sentences or role titles.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do keep text contrast >= 4.5:1 (#f2f6ff and #b7c6e0 over obsidian surfaces) even when luminous WebGL shaders animate underneath.",
+      "Do trigger WebGL shockwaves or subtle core modulation cleanly via SpatialContext refs so 60 FPS animations cause zero React re-renders.",
+      "Do respect prefers-reduced-motion: reduce by freezing continuous spin/camera drift while preserving crisp static 3D rendering and instant state feedback.",
+      "Do keep all real personal data, live API endpoints, and .ogg audio samples strictly user-initiated and truthful."
+    ],
+    "donts": [
+      "Don't add eyebrow/kicker tags above headings, gradient text fills, feTurbulence noise overlays, or hard offset shadows (6px 6px 0).",
+      "Don't expose the student ID (2310900087) in visible page copy or commit STEAM_API_KEY into client assets.",
+      "Don't apply monospace styling to Vietnamese prose descriptions or role titles.",
+      "Don't stack decorative blur boxes over flat opaque surfaces where no live WebGL depth exists underneath."
+    ]
+  }
+}

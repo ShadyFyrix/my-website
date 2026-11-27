@@ -9,7 +9,9 @@ export function FooterMast() {
   return (
     <footer className="site-footer">
       <div className="container">
-        <p className="site-footer__mast">{t(PROFILE.name)}</p>
+        <p className="site-footer__mast" aria-hidden="true">
+          {PROFILE.handle}
+        </p>
 
         <div className="site-footer__bar">
           <ul className="site-footer__links">
@@ -19,13 +21,13 @@ export function FooterMast() {
               </a>
             </li>
             <li>
-              <a className="site-footer__link" href="#about">
-                {locale === 'vi' ? 'Giới thiệu' : 'About'}
+              <a className="site-footer__link" href="#products">
+                {locale === 'vi' ? 'Sản phẩm' : 'Products'}
               </a>
             </li>
             <li>
-              <a className="site-footer__link" href="#products">
-                {locale === 'vi' ? 'Sản phẩm' : 'Products'}
+              <a className="site-footer__link" href="#about">
+                {locale === 'vi' ? 'Giới thiệu' : 'About'}
               </a>
             </li>
             <li>
@@ -59,11 +61,9 @@ export function FooterMast() {
 
         <div className="site-footer__meta">
           <p>
-            {locale === 'vi'
-              ? 'Lục Văn Sơn (ShadyFyrix), Thanh Hóa và Hà Nội.'
-              : 'Luc Van Son (ShadyFyrix), Thanh Hoa and Hanoi.'}
+            {t(PROFILE.name)} ({PROFILE.handle}) · {t(PROFILE.location)}
           </p>
-          <p>React 19 · TypeScript · Three.js</p>
+          <p className="mono-num">React 19 · TypeScript · Three.js GLSL · Cloudflare Workers</p>
         </div>
       </div>
     </footer>

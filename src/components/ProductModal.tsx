@@ -51,8 +51,8 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
               <h3 className="case-dialog__title" id="case-dialog-title">
                 {product.title}
               </h3>
-              <p className="num-year">
-                {product.year} / {t(product.role)}
+              <p className="case-dialog__meta">
+                <span className="mono-num">{product.year}</span> · {t(product.role)}
               </p>
             </div>
             <button
@@ -136,31 +136,31 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
             )}
 
             <div className="case-dialog__footer">
-              <p className="stack-text">{product.stack.join(', ')}</p>
+              <p className="stack-text mono-num">{product.stack.join(' · ')}</p>
               <div className="product-index__actions">
                 {product.repoUrl && (
                   <a
-                    className="btn btn--primary"
+                    className="btn btn--primary btn--compact"
                     href={product.repoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <span>GitHub</span>
-                    <ArrowUpRight size={18} aria-hidden="true" />
+                    <ArrowUpRight size={16} aria-hidden="true" />
                   </a>
                 )}
                 {product.liveUrl && (
                   <a
-                    className="btn btn--secondary"
+                    className="btn btn--ghost btn--compact"
                     href={product.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <span>{locale === 'vi' ? 'Bản chạy thử' : 'Live demo'}</span>
-                    <ArrowUpRight size={18} aria-hidden="true" />
+                    <ArrowUpRight size={16} aria-hidden="true" />
                   </a>
                 )}
-                <button type="button" className="btn btn--secondary" onClick={onClose}>
+                <button type="button" className="btn btn--ghost btn--compact" onClick={onClose}>
                   {locale === 'vi' ? 'Đóng' : 'Close'}
                 </button>
               </div>
