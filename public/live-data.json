@@ -1,9 +1,9 @@
 {
-  "syncedAt": "2026-11-27T01:36:14.056Z",
+  "syncedAt": "2026-11-27T16:24:27.395Z",
   "sources": {
     "github": "live",
     "youtube": "live",
-    "steam": "live"
+    "steam": "snapshot"
   },
   "github": {
     "login": "ShadyFyrix",
@@ -118,7 +118,7 @@
         "url": "https://www.youtube.com/watch?v=TbNRdSJjFoI",
         "thumbnail": "https://i1.ytimg.com/vi/TbNRdSJjFoI/hqdefault.jpg",
         "publishedAt": "2026-08-09T15:16:23+00:00",
-        "views": 113
+        "views": 114
       },
       {
         "videoId": "YTc1n1audQU",
