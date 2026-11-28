@@ -1,12 +1,50 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { ArrowRight, ArrowUpRight, Box } from 'lucide-react';
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'motion/react';
+import type { MotionValue } from 'motion/react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { PRODUCTS } from '../data/products';
 import type { BilingualText, ProductCategory, ProductItem } from '../data/types';
 import { useSpatial } from './SpatialContext';
-import { AnimatedRule, DepthSurface } from './SpatialFX';
+import { AnimatedRule, DepthSurface, MotionHeadline } from './SpatialFX';
 import { ProductModal } from './ProductModal';
+
+interface RunwayCard3DProps {
+  index: number;
+  total: number;
+  progress: MotionValue<number>;
+  enabled: boolean;
+  children: ReactNode;
+}
+
+function RunwayCard3D({ index, total, progress, enabled, children }: RunwayCard3DProps) {
+  const denom = Math.max(1, total - 1);
+  const center = total <= 1 ? 0.5 : index / denom;
+  const spread = Math.max(0.24, (1 / Math.max(2, total - 1)) * 1.45);
+
+  const rotateY = useTransform(progress, (v) => {
+    const raw = (v - center) / spread;
+    return (raw < -1 ? -1 : raw > 1 ? 1 : raw) * 10;
+  });
+  const scale = useTransform(progress, (v) => {
+    const raw = Math.abs(v - center) / spread;
+    return 1.01 - (raw > 1 ? 1 : raw) * 0.055;
+  });
+
+  if (!enabled) {
+    return <div className="hscroll-card-wrap">{children}</div>;
+  }
+
+  return (
+    <motion.div
+      className="hscroll-card-wrap"
+      style={{ rotateY, scale, transformPerspective: 1350 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 type FilterValue = 'all' | ProductCategory;
 
@@ -24,11 +62,12 @@ export function ProductsSection() {
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [maxShift, setMaxShift] = useState(0);
   const [isDesktop, setIsDesktop] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(1);
 
   const runwayRef = useRef<HTMLElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const counterRef = useRef<HTMLSpanElement | null>(null);
+  const lastIndexRef = useRef(1);
 
   const visibleProducts = useMemo(
     () =>
@@ -73,7 +112,12 @@ export function ProductsSection() {
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
     const count = Math.max(1, visibleProducts.length);
     const idx = Math.min(count, Math.max(1, Math.round(latest * (count - 1)) + 1));
-    setActiveIndex(idx);
+    if (idx !== lastIndexRef.current) {
+      lastIndexRef.current = idx;
+      if (counterRef.current) {
+        counterRef.current.textContent = `${String(idx).padStart(2, '0')} / ${String(count).padStart(2, '0')}`;
+      }
+    }
   });
 
   const runwayHeight =
@@ -91,14 +135,17 @@ export function ProductsSection() {
         <div className="container hscroll-header">
           <AnimatedRule
             sectionIndex="02"
-            sectionLabel={locale === 'vi' ? 'SẢN PHẨM · CUỘN NGANG' : 'PRODUCTS · HORIZONTAL'}
+            sectionLabel={locale === 'vi' ? 'DỰ ÁN · TRƯNG BÀY' : 'FEATURED · SHOWCASE'}
           />
 
           <div className="hscroll-head-row">
             <div>
-              <h2 id="products-heading">
-                {locale === 'vi' ? 'SẢN PHẨM ĐÃ XÂY DỰNG' : 'SHIPPED PRODUCTS'}
-              </h2>
+              <MotionHeadline
+                id="products-heading"
+                text={locale === 'vi' ? 'DỰ ÁN TIÊU BIỂU' : 'FEATURED PROJECTS'}
+                pillText={String(visibleProducts.length).padStart(2, '0')}
+                pillVariant="glass"
+              />
             </div>
 
             <div className="hscroll-hint">
@@ -131,7 +178,7 @@ export function ProductsSection() {
                     aria-pressed={isPressed}
                     onClick={() => {
                       setActiveFilter(filter.value);
-                      setActiveIndex(1);
+                      lastIndexRef.current = 1;
                       triggerShockwave(0.45, 0);
                     }}
                   >
@@ -157,9 +204,8 @@ export function ProductsSection() {
                     style={{ scaleX: progressScale }}
                   />
                 </div>
-                <span className="hscroll-counter mono-num">
-                  {String(activeIndex).padStart(2, '0')} /{' '}
-                  {String(visibleProducts.length).padStart(2, '0')}
+                <span ref={counterRef} className="hscroll-counter mono-num">
+                  01 / {String(visibleProducts.length).padStart(2, '0')}
                 </span>
               </div>
             )}
@@ -173,7 +219,13 @@ export function ProductsSection() {
             style={isDesktop && maxShift > 40 ? { x } : undefined}
           >
             {visibleProducts.map((product, idx) => (
-              <div className="hscroll-card-wrap" key={product.id}>
+              <RunwayCard3D
+                key={product.id}
+                index={idx}
+                total={visibleProducts.length}
+                progress={scrollYProgress}
+                enabled={isDesktop && maxShift > 40}
+              >
                 <DepthSurface
                   className="hscroll-card"
                   maxTilt={3.6}
@@ -253,7 +305,7 @@ export function ProductsSection() {
                     )}
                   </div>
                 </DepthSurface>
-              </div>
+              </RunwayCard3D>
             ))}
           </motion.div>
         </div>

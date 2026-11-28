@@ -44,8 +44,8 @@ export const SOCIAL_LINKS: SocialLink[] = [
     handle: 'ShadyFyrixVN',
     url: 'https://steamcommunity.com/id/BetterCallShady/',
     description: {
-      vi: 'Hồ sơ Steam Level 9, 7 năm hoạt động, 39 trò chơi và hoạt động gần đây.',
-      en: 'Steam profile at Level 9, 7 years of service, 39 games, and live activity.',
+      vi: 'Hồ sơ Steam Level 9, 7 năm hoạt động, 56 trò chơi và hoạt động gần đây.',
+      en: 'Steam profile at Level 9, 7 years of service, 56 games, and live activity.',
     },
     enabled: true,
   },

@@ -1,6 +1,6 @@
 import { useLanguage } from '../i18n/LanguageContext';
 import { PROFILE } from '../data/profile';
-import { AnimatedRule, DepthSurface, ParallaxFrame, RevealBlock } from './SpatialFX';
+import { AnimatedRule, DepthSurface, MotionHeadline, ParallaxFrame, RevealBlock } from './SpatialFX';
 
 export function AboutSection() {
   const { locale, t } = useLanguage();
@@ -13,8 +13,8 @@ export function AboutSection() {
           sectionLabel={locale === 'vi' ? 'GIỚI THIỆU' : 'ABOUT'}
         />
         <div className="about__grid">
-          <RevealBlock className="about__content">
-            <h2 id="about-heading">{t(PROFILE.aboutHeading)}</h2>
+          <RevealBlock className="about__content" variant="wing-left">
+            <MotionHeadline id="about-heading" text={t(PROFILE.aboutHeading)} />
             <p className="lead about__lead">{t(PROFILE.aboutLead)}</p>
             <p className="about__bio">{t(PROFILE.aboutBio)}</p>
 
@@ -28,7 +28,7 @@ export function AboutSection() {
             </dl>
           </RevealBlock>
 
-          <RevealBlock delay={0.1}>
+          <RevealBlock delay={0.1} variant="wing-right">
             <figure className="about__figure">
               <DepthSurface className="portrait-plate" maxTilt={4.5} beamAlwaysOn>
                 <ParallaxFrame className="portrait-slot" offset={22}>

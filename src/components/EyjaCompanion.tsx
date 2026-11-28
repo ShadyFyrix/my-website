@@ -68,6 +68,7 @@ export function EyjaCompanion() {
   const quoteTimerRef = useRef<number | null>(null);
   const burstSeqRef = useRef<number>(1);
   const lastReactionNonceRef = useRef<number>(0);
+  const startWalkRef = useRef<(() => void) | null>(null);
 
   const syncDomX = useCallback((x: number) => {
     const el = roamerRef.current;
@@ -145,12 +146,26 @@ export function EyjaCompanion() {
 
   // Track whether hero showcase is in view so we avoid duplicate Eyja when Hero tab = eyja-chibi
   useEffect(() => {
-    const onScroll = () => {
-      setNearHeroTop(window.scrollY < Math.max(380, window.innerHeight * 0.55));
+    let threshold = Math.max(380, window.innerHeight * 0.55);
+    let lastNear = window.scrollY < threshold;
+    setNearHeroTop(lastNear);
+
+    const onResize = () => {
+      threshold = Math.max(380, window.innerHeight * 0.55);
     };
-    onScroll();
+    const onScroll = () => {
+      const next = window.scrollY < threshold;
+      if (next !== lastNear) {
+        lastNear = next;
+        setNearHeroTop(next);
+      }
+    };
+    window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   // Warm browser HTTP cache for active skin clips via lightweight fetch without holding 7 video decoders open
@@ -217,94 +232,141 @@ export function EyjaCompanion() {
     };
   }, [setActionSafe]);
 
-  // Silky 60 FPS GPU-driven Dorm AI loop (ZERO React setState per frame!)
+  // Idle-sleeping 60 FPS GPU-driven Dorm AI loop (0 RAF frames when resting/sitting/sleeping!)
   useEffect(() => {
     if (!eyjaRoamerEnabled) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let rafId = 0;
+    let decisionTimer: number | null = null;
     let lastTs = performance.now();
-    let nextDecisionAt = lastTs + 3200;
+    let lastDrawTs = lastTs - 20;
+    let viewportW = window.innerWidth;
 
     syncDomX(xRef.current);
 
-    const tick = (now: number) => {
+    const scheduleDecision = (delayMs: number) => {
+      if (decisionTimer) window.clearTimeout(decisionTimer);
+      decisionTimer = window.setTimeout(() => {
+        decisionTimer = null;
+        if (document.hidden || reduced) {
+          scheduleDecision(3500);
+          return;
+        }
+        const now = performance.now();
+        if (draggingRef.current || menuOpenRef.current || now < lockedUntilRef.current) {
+          scheduleDecision(1600);
+          return;
+        }
+        const minX = 28;
+        const maxX = Math.max(minX + 40, viewportW - 134);
+        const idleMs = Date.now() - lastActivityRef.current;
+        if (idleMs > 24000) {
+          setActionSafe('sleep');
+          scheduleDecision(7000);
+        } else {
+          const r = Math.random();
+          if (r < 0.48) {
+            if (xRef.current < minX + 95) {
+              facingRef.current = 1;
+            } else if (xRef.current > maxX - 95) {
+              facingRef.current = -1;
+            } else {
+              facingRef.current = Math.random() < 0.5 ? 1 : -1;
+            }
+            setFacing(facingRef.current);
+            setActionSafe('move');
+            startWalkLoop();
+            scheduleDecision(4200 + Math.random() * 3400);
+          } else if (r < 0.78) {
+            setActionSafe('relax');
+            scheduleDecision(3400 + Math.random() * 2800);
+          } else {
+            setActionSafe('sit');
+            scheduleDecision(4800 + Math.random() * 3200);
+          }
+        }
+      }, delayMs);
+    };
+
+    const tickWalk = (now: number) => {
+      rafId = 0;
+      if (document.hidden) {
+        lastTs = now;
+        rafId = requestAnimationFrame(tickWalk);
+        return;
+      }
+      if (now - lastDrawTs < 15.5) {
+        rafId = requestAnimationFrame(tickWalk);
+        return;
+      }
+      lastDrawTs = now;
       const dt = Math.min(0.05, Math.max(0.001, (now - lastTs) / 1000));
       lastTs = now;
 
       const minX = 28;
-      const maxX = Math.max(minX + 40, window.innerWidth - 134);
+      const maxX = Math.max(minX + 40, viewportW - 134);
+      const shouldWalk = actionRef.current === 'move' && !menuOpenRef.current && !draggingRef.current && !reduced;
+      const cruiseSpeed = viewportW < 760 ? 44 : 62;
+      const targetVel = shouldWalk ? facingRef.current * cruiseSpeed : 0;
 
-      if (!draggingRef.current && !reduced) {
-        const shouldWalk = actionRef.current === 'move' && !menuOpenRef.current;
-        const cruiseSpeed = window.innerWidth < 760 ? 44 : 62;
-        const targetVel = shouldWalk ? facingRef.current * cruiseSpeed : 0;
+      velXRef.current += (targetVel - velXRef.current) * Math.min(1, dt * 8.5);
 
-        // Smooth acceleration/deceleration so starts & stops feel natural
-        velXRef.current += (targetVel - velXRef.current) * Math.min(1, dt * 8.5);
-
-        if (Math.abs(velXRef.current) > 0.25) {
-          let nx = xRef.current + velXRef.current * dt;
-          if (nx <= minX) {
-            nx = minX;
-            facingRef.current = 1;
-            velXRef.current = Math.abs(velXRef.current) * 0.5;
-            setFacing(1);
-          } else if (nx >= maxX) {
-            nx = maxX;
-            facingRef.current = -1;
-            velXRef.current = -Math.abs(velXRef.current) * 0.5;
-            setFacing(-1);
-          }
-          xRef.current = nx;
-          syncDomX(nx);
+      if (Math.abs(velXRef.current) > 0.25) {
+        let nx = xRef.current + velXRef.current * dt;
+        if (nx <= minX) {
+          nx = minX;
+          facingRef.current = 1;
+          velXRef.current = Math.abs(velXRef.current) * 0.5;
+          setFacing(1);
+        } else if (nx >= maxX) {
+          nx = maxX;
+          facingRef.current = -1;
+          velXRef.current = -Math.abs(velXRef.current) * 0.5;
+          setFacing(-1);
         }
-
-        if (!menuOpenRef.current && now >= nextDecisionAt && now >= lockedUntilRef.current) {
-          const idleMs = Date.now() - lastActivityRef.current;
-          if (idleMs > 24000) {
-            setActionSafe('sleep');
-            nextDecisionAt = now + 7000;
-          } else {
-            const r = Math.random();
-            if (r < 0.48) {
-              if (xRef.current < minX + 95) {
-                facingRef.current = 1;
-              } else if (xRef.current > maxX - 95) {
-                facingRef.current = -1;
-              } else {
-                facingRef.current = Math.random() < 0.5 ? 1 : -1;
-              }
-              setFacing(facingRef.current);
-              setActionSafe('move');
-              nextDecisionAt = now + 4200 + Math.random() * 3400;
-            } else if (r < 0.78) {
-              setActionSafe('relax');
-              nextDecisionAt = now + 3400 + Math.random() * 2800;
-            } else {
-              setActionSafe('sit');
-              nextDecisionAt = now + 4800 + Math.random() * 3200;
-            }
-          }
-        }
+        xRef.current = nx;
+        syncDomX(nx);
+        rafId = requestAnimationFrame(tickWalk);
+      } else if (shouldWalk) {
+        rafId = requestAnimationFrame(tickWalk);
+      } else {
+        velXRef.current = 0;
       }
-
-      rafId = requestAnimationFrame(tick);
     };
 
+    const startWalkLoop = () => {
+      if (!rafId && !reduced) {
+        lastTs = performance.now();
+        lastDrawTs = lastTs - 20;
+        rafId = requestAnimationFrame(tickWalk);
+      }
+    };
+    startWalkRef.current = startWalkLoop;
+
     const onResize = () => {
-      const clamped = Math.max(24, Math.min(window.innerWidth - 128, xRef.current));
+      viewportW = window.innerWidth;
+      const clamped = Math.max(24, Math.min(viewportW - 128, xRef.current));
       xRef.current = clamped;
       syncDomX(clamped);
     };
 
-    window.addEventListener('resize', onResize);
-    rafId = requestAnimationFrame(tick);
+    window.addEventListener('resize', onResize, { passive: true });
+    if (actionRef.current === 'move') startWalkLoop();
+    scheduleDecision(3200);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      startWalkRef.current = null;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (decisionTimer) window.clearTimeout(decisionTimer);
       window.removeEventListener('resize', onResize);
     };
   }, [eyjaRoamerEnabled, setActionSafe, syncDomX]);
+
+  useEffect(() => {
+    if (action === 'move') {
+      startWalkRef.current?.();
+    }
+  }, [action]);
 
   useEffect(() => {
     return () => {

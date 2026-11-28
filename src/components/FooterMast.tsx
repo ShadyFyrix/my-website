@@ -1,9 +1,10 @@
+import { ArrowUp, Globe } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { PROFILE } from '../data/profile';
 import { SOCIAL_LINKS } from '../data/socials';
 
 export function FooterMast() {
-  const { locale, toggleLocale, t } = useLanguage();
+  const { locale, setLocale, t } = useLanguage();
   const activeSocials = SOCIAL_LINKS.filter((s) => s.enabled);
 
   return (
@@ -17,12 +18,12 @@ export function FooterMast() {
           <ul className="site-footer__links">
             <li>
               <a className="site-footer__link" href="#live">
-                Live
+                {locale === 'vi' ? 'Hoạt động' : 'Live'}
               </a>
             </li>
             <li>
               <a className="site-footer__link" href="#products">
-                {locale === 'vi' ? 'Sản phẩm' : 'Products'}
+                {locale === 'vi' ? 'Dự án' : 'Projects'}
               </a>
             </li>
             <li>
@@ -37,7 +38,7 @@ export function FooterMast() {
             </li>
             <li>
               <a className="site-footer__link" href="#connect">
-                {locale === 'vi' ? 'Kết nối' : 'Connect'}
+                {locale === 'vi' ? 'Liên hệ' : 'Contact'}
               </a>
             </li>
             {activeSocials.map((s) => (
@@ -54,9 +55,41 @@ export function FooterMast() {
             ))}
           </ul>
 
-          <button type="button" className="site-nav__lang" onClick={toggleLocale}>
-            {locale === 'vi' ? 'English' : 'Tiếng Việt'}
-          </button>
+          <div className="site-footer__controls">
+            <div
+              className="site-footer__lang-seg"
+              role="group"
+              aria-label={locale === 'vi' ? 'Chọn ngôn ngữ' : 'Language switcher'}
+            >
+              <Globe size={14} className="site-footer__lang-icon" aria-hidden="true" />
+              <button
+                type="button"
+                className={`site-footer__seg-btn ${locale === 'vi' ? 'is-active' : ''}`}
+                aria-pressed={locale === 'vi'}
+                onClick={() => setLocale('vi')}
+              >
+                Tiếng Việt
+              </button>
+              <button
+                type="button"
+                className={`site-footer__seg-btn ${locale === 'en' ? 'is-active' : ''}`}
+                aria-pressed={locale === 'en'}
+                onClick={() => setLocale('en')}
+              >
+                English
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="site-footer__top-btn"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              aria-label={locale === 'vi' ? 'Lên đầu trang' : 'Back to top'}
+            >
+              <ArrowUp size={15} aria-hidden="true" />
+              <span>{locale === 'vi' ? 'Đầu trang' : 'Top'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="site-footer__meta">

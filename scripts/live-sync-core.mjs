@@ -10,7 +10,7 @@ export const BASELINE_LIVE_FEED = {
     name: 'LucVanSon',
     url: 'https://github.com/ShadyFyrix',
     avatarUrl: '/images/portrait/shadyfyrix-avatar.png',
-    publicRepos: 15,
+    publicRepos: 16,
     followers: 0,
     following: 0,
     updatedAt: '2026-11-25T08:37:50Z',

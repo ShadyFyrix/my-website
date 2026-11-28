@@ -143,39 +143,47 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
     let lastY = window.scrollY;
     let lastPx = 0;
     let lastPy = 0;
+    let cachedMaxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    let cachedVw = Math.max(1, window.innerWidth);
+    let cachedVh = Math.max(1, window.innerHeight);
+
+    const syncMetrics = () => {
+      cachedVw = Math.max(1, window.innerWidth);
+      cachedVh = Math.max(1, window.innerHeight);
+      cachedMaxScroll = Math.max(1, document.documentElement.scrollHeight - cachedVh);
+    };
 
     const onScroll = () => {
-      const maxScroll = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight
-      );
       const y = window.scrollY;
       const delta = y - lastY;
       lastY = y;
-      liveRef.current.scrollProgress = Math.max(0, Math.min(1, y / maxScroll));
+      liveRef.current.scrollProgress = Math.max(0, Math.min(1, y / cachedMaxScroll));
       liveRef.current.scrollVel = Math.max(-1, Math.min(1, delta / 65));
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      const vw = Math.max(1, window.innerWidth);
-      const vh = Math.max(1, window.innerHeight);
-      const nx = (e.clientX / vw) * 2 - 1;
-      const ny = -(e.clientY / vh) * 2 + 1;
+      const nx = (e.clientX / cachedVw) * 2 - 1;
+      const ny = -(e.clientY / cachedVh) * 2 + 1;
       const speed = Math.hypot(nx - lastPx, ny - lastPy);
       lastPx = nx;
       lastPy = ny;
       liveRef.current.pointerX = nx;
       liveRef.current.pointerY = ny;
-      liveRef.current.pointerClientX = e.clientX / vw;
-      liveRef.current.pointerClientY = e.clientY / vh;
+      liveRef.current.pointerClientX = e.clientX / cachedVw;
+      liveRef.current.pointerClientY = e.clientY / cachedVh;
       liveRef.current.pointerVel = Math.min(1.6, liveRef.current.pointerVel + speed * 3.4);
     };
 
+    const ro = new ResizeObserver(syncMetrics);
+    ro.observe(document.documentElement);
+    window.addEventListener('resize', syncMetrics, { passive: true });
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('pointermove', onPointerMove, { passive: true });
 
     return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', syncMetrics);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', onPointerMove);
       if (audioElRef.current) {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight,
   Code2,
@@ -9,21 +9,47 @@ import {
   Video,
 } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
-import type { LiveFeedSnapshot } from '../data/types';
+import { useLiveData } from '../hooks/useLiveData';
 import { useSpatial } from './SpatialContext';
 import {
   AnimatedCounter,
   AnimatedRule,
   DepthSurface,
+  MotionHeadline,
   RevealBlock,
+  ScrollDepth3D,
 } from './SpatialFX';
 
-interface LivePulseSectionProps {
-  data: LiveFeedSnapshot;
-  isSyncing: boolean;
-  nextSyncIn: number;
-  mode: 'api' | 'hybrid' | 'snapshot';
-  onRefresh: () => void;
+function LiveCountdownLabel({
+  cycleStartMs,
+  cycleSeconds,
+  label,
+}: {
+  cycleStartMs: number;
+  cycleSeconds: number;
+  label: string;
+}) {
+  const numRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      if (!numRef.current) return;
+      const elapsed = Math.floor((Date.now() - cycleStartMs) / 1000);
+      const remain = Math.max(0, cycleSeconds - (elapsed % cycleSeconds));
+      numRef.current.textContent = formatCountdown(remain);
+    };
+    update();
+    const id = window.setInterval(() => {
+      if (!document.hidden) update();
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [cycleStartMs, cycleSeconds]);
+
+  return (
+    <span className="mono-num live-countdown">
+      {label} · <span ref={numRef}>{formatCountdown(cycleSeconds)}</span>
+    </span>
+  );
 }
 
 function formatTime(iso: string, locale: 'vi' | 'en'): string {
@@ -60,14 +86,9 @@ function formatPublicRepoName(name: string): string {
   return name.replace(/[-_]?2310900087/g, '').replace(/--+/g, '-').replace(/__+/g, '_');
 }
 
-export function LivePulseSection({
-  data,
-  isSyncing,
-  nextSyncIn,
-  mode,
-  onRefresh,
-}: LivePulseSectionProps) {
+export function LivePulseSection() {
   const { locale } = useLanguage();
+  const { data, isSyncing, cycleStartMs, cycleSeconds, mode, refreshNow } = useLiveData();
   const { triggerShockwave } = useSpatial();
   const [marqueePaused, setMarqueePaused] = useState(false);
 
@@ -97,13 +118,16 @@ export function LivePulseSection({
       <div className="container">
         <AnimatedRule
           sectionIndex="01"
-          sectionLabel={locale === 'vi' ? 'HOẠT ĐỘNG LIVE' : 'LIVE ACTIVITY'}
+          sectionLabel={locale === 'vi' ? 'TRỰC TIẾP' : 'LIVE FEED'}
         />
         <div className="section__head live-head">
           <div>
-            <h2 id="live-heading">
-              {locale === 'vi' ? 'DỮ LIỆU THỰC & HOẠT ĐỘNG' : 'LIVE TELEMETRY & ACTIVITY'}
-            </h2>
+            <MotionHeadline
+              id="live-heading"
+              text={locale === 'vi' ? 'HOẠT ĐỘNG TRỰC TIẾP' : 'LIVE ACTIVITY'}
+              pillText="LIVE"
+              pillVariant="live"
+            />
           </div>
 
           <div className="live-toolbar">
@@ -114,9 +138,11 @@ export function LivePulseSection({
                   {locale === 'vi' ? 'Đồng bộ' : 'Synced'} {formatTime(data.syncedAt, locale)}
                 </span>
               </span>
-              <span className="mono-num live-countdown">
-                {locale === 'vi' ? 'Chu kỳ tiếp' : 'Next cycle'} · {formatCountdown(nextSyncIn)}
-              </span>
+              <LiveCountdownLabel
+                cycleStartMs={cycleStartMs}
+                cycleSeconds={cycleSeconds}
+                label={locale === 'vi' ? 'Chu kỳ tiếp' : 'Next cycle'}
+              />
             </div>
 
             <button
@@ -124,7 +150,7 @@ export function LivePulseSection({
               className="btn btn--ghost btn--compact"
               onClick={() => {
                 triggerShockwave(0.95, 0);
-                onRefresh();
+                refreshNow();
               }}
               disabled={isSyncing}
               aria-busy={isSyncing}
@@ -232,9 +258,10 @@ export function LivePulseSection({
           </button>
         </div>
 
-        {/* Asymmetric Spatial Live Feeds */}
+        {/* Asymmetric Spatial Live Feeds with 3D Wing Scroll Unfold */}
         <div className="live-panels">
-          <DepthSurface className="live-panel live-panel--youtube" maxTilt={2.2}>
+          <ScrollDepth3D className="live-panel--youtube" variant="wing-left">
+            <DepthSurface className="live-panel" maxTilt={2.2}>
             <div className="live-panel__head">
               <div className="live-panel__title-wrap">
                 <Video size={18} aria-hidden="true" />
@@ -285,8 +312,10 @@ export function LivePulseSection({
               ))}
             </div>
           </DepthSurface>
+          </ScrollDepth3D>
 
-          <DepthSurface className="live-panel" maxTilt={2.6}>
+          <ScrollDepth3D variant="wing-right">
+            <DepthSurface className="live-panel" maxTilt={2.6}>
             <div className="live-panel__head">
               <div className="live-panel__title-wrap">
                 <Code2 size={18} aria-hidden="true" />
@@ -324,8 +353,10 @@ export function LivePulseSection({
               ))}
             </ul>
           </DepthSurface>
+          </ScrollDepth3D>
 
-          <DepthSurface className="live-panel" maxTilt={2.6}>
+          <ScrollDepth3D variant="wing-right">
+            <DepthSurface className="live-panel" maxTilt={2.6}>
             <div className="live-panel__head">
               <div className="live-panel__title-wrap">
                 <Gamepad2 size={18} aria-hidden="true" />
@@ -377,6 +408,7 @@ export function LivePulseSection({
               })}
             </ul>
           </DepthSurface>
+          </ScrollDepth3D>
         </div>
       </div>
     </section>

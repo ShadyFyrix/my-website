@@ -1,9 +1,9 @@
 {
-  "syncedAt": "2026-11-28T01:16:11.021Z",
+  "syncedAt": "2026-11-28T07:23:50.007Z",
   "sources": {
     "github": "live",
     "youtube": "live",
-    "steam": "snapshot"
+    "steam": "live"
   },
   "github": {
     "login": "ShadyFyrix",
@@ -106,23 +106,15 @@
     "videos": [
       {
         "videoId": "VFC8b5MUwGU",
-        "title": "Tai nạn ở bình nguyên vô vọng 💀",
+        "title": "Tai nạn ở bình nguyên vô vọng",
         "url": "https://www.youtube.com/watch?v=VFC8b5MUwGU",
         "thumbnail": "https://i3.ytimg.com/vi/VFC8b5MUwGU/hqdefault.jpg",
         "publishedAt": "2026-09-06T20:28:49+00:00",
         "views": 62
       },
       {
-        "videoId": "TbNRdSJjFoI",
-        "title": "Mommy, I want milk 🍼🍼",
-        "url": "https://www.youtube.com/watch?v=TbNRdSJjFoI",
-        "thumbnail": "https://i1.ytimg.com/vi/TbNRdSJjFoI/hqdefault.jpg",
-        "publishedAt": "2026-08-09T15:16:23+00:00",
-        "views": 114
-      },
-      {
         "videoId": "YTc1n1audQU",
-        "title": "Raul Double Jumpuaaa Sever 🗣️🗣️🔥🔥🔥",
+        "title": "Raul Double Jumpuaaa Sever",
         "url": "https://www.youtube.com/watch?v=YTc1n1audQU",
         "thumbnail": "https://i2.ytimg.com/vi/YTc1n1audQU/hqdefault.jpg",
         "publishedAt": "2025-12-06T23:13:13+00:00",
@@ -143,14 +135,6 @@
         "thumbnail": "https://i3.ytimg.com/vi/FB5GJ1oj1lY/hqdefault.jpg",
         "publishedAt": "2025-09-17T05:20:39+00:00",
         "views": 1362
-      },
-      {
-        "videoId": "DdqFp38-yXg",
-        "title": "No Yu For You",
-        "url": "https://www.youtube.com/watch?v=DdqFp38-yXg",
-        "thumbnail": "https://i1.ytimg.com/vi/DdqFp38-yXg/hqdefault.jpg",
-        "publishedAt": "2025-07-21T18:01:48+00:00",
-        "views": 72
       }
     ]
   },
@@ -158,7 +142,7 @@
     "profileName": "ShadyFyrixVN",
     "realName": "Lục Văn Sơn",
     "url": "https://steamcommunity.com/id/BetterCallShady/",
-    "onlineState": "offline",
+    "onlineState": "Offline",
     "onlineCode": 0,
     "currentGame": null,
     "level": 9,
@@ -168,7 +152,7 @@
     "badgesCount": 6,
     "profileAwards": 8,
     "friendsCount": 17,
-    "recentHours2Weeks": 0,
+    "recentHours2Weeks": 1.8,
     "recentGames": [
       {
         "name": "The Spike Cross",

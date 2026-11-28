@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import type { LiveFeedSnapshot } from '../data/types';
 
 const AUTO_REFRESH_SECONDS = 180;
@@ -17,7 +17,7 @@ export const INITIAL_LIVE_FEED: LiveFeedSnapshot = {
     name: 'LucVanSon',
     url: 'https://github.com/ShadyFyrix',
     avatarUrl: '/images/portrait/shadyfyrix-avatar.png',
-    publicRepos: 15,
+    publicRepos: 16,
     followers: 0,
     following: 0,
     updatedAt: '2026-11-25T08:37:50Z',
@@ -196,94 +196,135 @@ async function fetchDirectGithub(force: boolean): Promise<LiveFeedSnapshot['gith
   }
 }
 
-export function useLiveData() {
-  const [data, setData] = useState<LiveFeedSnapshot>(INITIAL_LIVE_FEED);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [nextSyncIn, setNextSyncIn] = useState(AUTO_REFRESH_SECONDS);
-  const [mode, setMode] = useState<'api' | 'hybrid' | 'snapshot'>('snapshot');
-  const inflightRef = useRef(false);
+interface LiveStoreState {
+  data: LiveFeedSnapshot;
+  isSyncing: boolean;
+  cycleStartMs: number;
+  mode: 'api' | 'hybrid' | 'snapshot';
+}
 
-  const syncNow = useCallback(async (force = false) => {
-    if (inflightRef.current) return;
-    inflightRef.current = true;
-    setIsSyncing(true);
+let storeState: LiveStoreState = {
+  data: INITIAL_LIVE_FEED,
+  isSyncing: false,
+  cycleStartMs: Date.now(),
+  mode: 'snapshot',
+};
 
+let inflight = false;
+let initialized = false;
+let pollTimer: number | null = null;
+const listeners = new Set<() => void>();
+
+function setStoreState(patch: Partial<LiveStoreState>) {
+  storeState = { ...storeState, ...patch };
+  for (const listener of listeners) listener();
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot() {
+  return storeState;
+}
+
+async function runSharedSync(force = false) {
+  if (inflight) return;
+  inflight = true;
+  setStoreState({ isSyncing: true });
+
+  try {
+    // Tier 2: Edge / Vite live proxy (/api/live-sync)
+    const apiUrl = force ? '/api/live-sync?force=1' : '/api/live-sync';
     try {
-      // Tier 2: Vite live proxy (/api/live-sync)
-      const apiUrl = force ? '/api/live-sync?force=1' : '/api/live-sync';
-      try {
-        const apiRes = await fetch(apiUrl, { cache: 'no-store' });
-        const contentType = apiRes.headers.get('content-type') || '';
-        if (apiRes.ok && contentType.includes('application/json')) {
-          const payload = (await apiRes.json()) as LiveFeedSnapshot;
-          if (payload?.github && payload?.youtube && payload?.steam) {
-            setData(payload);
-            setMode('api');
-            setNextSyncIn(AUTO_REFRESH_SECONDS);
-            return;
-          }
+      const apiRes = await fetch(apiUrl, { cache: 'no-store' });
+      const contentType = apiRes.headers.get('content-type') || '';
+      if (apiRes.ok && contentType.includes('application/json')) {
+        const payload = (await apiRes.json()) as LiveFeedSnapshot;
+        if (payload?.github && payload?.youtube && payload?.steam) {
+          setStoreState({
+            data: payload,
+            mode: 'api',
+            cycleStartMs: Date.now(),
+          });
+          return;
         }
-      } catch {
-        // Fallback to static snapshot + direct CORS GitHub API.
       }
+    } catch {
+      // Fallback to static snapshot + direct CORS GitHub API.
+    }
 
-      // Tier 3 + Tier 1: static /live-data.json + browser-side live GitHub API
-      let nextData: LiveFeedSnapshot = INITIAL_LIVE_FEED;
-      try {
-        const snapRes = await fetch('/live-data.json', { cache: 'no-store' });
-        if (snapRes.ok) {
-          const snapJson = (await snapRes.json()) as LiveFeedSnapshot;
-          if (snapJson?.github && snapJson?.youtube) {
-            nextData = snapJson;
-          }
+    // Tier 3 + Tier 1: static /live-data.json + browser-side live GitHub API
+    let nextData: LiveFeedSnapshot = INITIAL_LIVE_FEED;
+    try {
+      const snapRes = await fetch('/live-data.json', { cache: 'no-store' });
+      if (snapRes.ok) {
+        const snapJson = (await snapRes.json()) as LiveFeedSnapshot;
+        if (snapJson?.github && snapJson?.youtube) {
+          nextData = snapJson;
         }
-      } catch {
-        // Keep initial constant fallback.
       }
+    } catch {
+      // Keep initial constant fallback.
+    }
 
-      const liveGh = await fetchDirectGithub(force);
-      if (liveGh) {
-        nextData = {
-          ...nextData,
-          syncedAt: new Date().toISOString(),
-          sources: { ...nextData.sources, github: 'live' },
-          github: liveGh,
-        };
-        setMode('hybrid');
-      } else {
-        setMode('snapshot');
-      }
+    const liveGh = await fetchDirectGithub(force);
+    if (liveGh) {
+      nextData = {
+        ...nextData,
+        syncedAt: new Date().toISOString(),
+        sources: { ...nextData.sources, github: 'live' },
+        github: liveGh,
+      };
+      setStoreState({
+        data: nextData,
+        mode: 'hybrid',
+        cycleStartMs: Date.now(),
+      });
+    } else {
+      setStoreState({
+        data: nextData,
+        mode: 'snapshot',
+        cycleStartMs: Date.now(),
+      });
+    }
+  } finally {
+    inflight = false;
+    setStoreState({ isSyncing: false });
+  }
+}
 
-      setData(nextData);
-      setNextSyncIn(AUTO_REFRESH_SECONDS);
-    } finally {
-      setIsSyncing(false);
-      inflightRef.current = false;
+export function useLiveData() {
+  const snap = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+  useEffect(() => {
+    if (!initialized) {
+      initialized = true;
+      void runSharedSync(false);
+    }
+    if (pollTimer === null) {
+      pollTimer = window.setInterval(() => {
+        if (!document.hidden && listeners.size > 0) {
+          void runSharedSync(true);
+        }
+      }, AUTO_REFRESH_SECONDS * 1000);
     }
   }, []);
 
-  useEffect(() => {
-    void syncNow(false);
-
-    const countdown = window.setInterval(() => {
-      setNextSyncIn((prev) => {
-        if (prev <= 1) {
-          void syncNow(true);
-          return AUTO_REFRESH_SECONDS;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => window.clearInterval(countdown);
-  }, [syncNow]);
+  const refreshNow = useCallback(() => {
+    void runSharedSync(true);
+  }, []);
 
   return {
-    data,
-    isSyncing,
-    lastSyncedAt: data.syncedAt,
-    nextSyncIn,
-    mode,
-    refreshNow: () => syncNow(true),
+    data: snap.data,
+    isSyncing: snap.isSyncing,
+    lastSyncedAt: snap.data.syncedAt,
+    cycleStartMs: snap.cycleStartMs,
+    cycleSeconds: AUTO_REFRESH_SECONDS,
+    mode: snap.mode,
+    refreshNow,
   };
 }

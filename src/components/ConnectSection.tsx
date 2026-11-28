@@ -18,7 +18,7 @@ import { PROFILE } from '../data/profile';
 import { SOCIAL_LINKS } from '../data/socials';
 import type { SocialPlatform } from '../data/types';
 import { useSpatial } from './SpatialContext';
-import { AnimatedRule, DepthSurface, MagneticWrap, RevealBlock } from './SpatialFX';
+import { AnimatedRule, DepthSurface, MagneticWrap, MotionHeadline, RevealBlock } from './SpatialFX';
 
 function SocialIcon({ platform }: { platform: SocialPlatform }) {
   switch (platform) {
@@ -80,12 +80,13 @@ export function ConnectSection() {
       <div className="container">
         <AnimatedRule
           sectionIndex="05"
-          sectionLabel={locale === 'vi' ? 'KẾT NỐI' : 'CONNECT'}
+          sectionLabel={locale === 'vi' ? 'LIÊN HỆ' : 'CONTACT'}
         />
         <div className="section__head">
-          <h2 id="connect-heading">
-            {locale === 'vi' ? 'MẠNG CÁ NHÂN & LIÊN HỆ' : 'NETWORKS & CONTACT'}
-          </h2>
+          <MotionHeadline
+            id="connect-heading"
+            text={locale === 'vi' ? 'KẾT NỐI & LIÊN HỆ' : 'CONNECT & CONTACT'}
+          />
           <p className="section__lead">
             {locale === 'vi'
               ? 'GitHub, YouTube, Facebook, Steam và email trao đổi trực tiếp.'
@@ -93,11 +94,11 @@ export function ConnectSection() {
           </p>
         </div>
 
-        <RevealBlock>
-          <div className="connect-grid">
+        <div className="connect-grid">
+          <RevealBlock variant="wing-left">
             <DepthSurface className="connect-plate" maxTilt={2.8}>
               <h3 className="connect-plate__title">
-                {locale === 'vi' ? 'TRANG MẠNG CÁ NHÂN' : 'PERSONAL NETWORKS'}
+                {locale === 'vi' ? 'MẠNG XÃ HỘI & KÊNH CHÍNH' : 'SOCIAL PROFILES'}
               </h3>
 
               <ul className="social-list">
@@ -135,7 +136,9 @@ export function ConnectSection() {
                 </li>
               </ul>
             </DepthSurface>
+          </RevealBlock>
 
+          <RevealBlock variant="wing-right">
             <DepthSurface className="connect-plate connect-plate--direct" maxTilt={2.8}>
               <h3 className="connect-plate__title">
                 {locale === 'vi' ? 'LIÊN HỆ TRỰC TIẾP' : 'DIRECT CONTACT'}
@@ -187,8 +190,8 @@ export function ConnectSection() {
                 )}
               </div>
             </DepthSurface>
-          </div>
-        </RevealBlock>
+          </RevealBlock>
+        </div>
       </div>
     </section>
   );

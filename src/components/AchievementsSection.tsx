@@ -2,10 +2,12 @@ import { ArrowUpRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { ACHIEVEMENTS } from '../data/achievements';
-import { AnimatedRule } from './SpatialFX';
+import { useLiveData } from '../hooks/useLiveData';
+import { AnimatedRule, MotionHeadline } from './SpatialFX';
 
 export function AchievementsSection() {
   const { locale, t } = useLanguage();
+  const { data } = useLiveData();
 
   return (
     <section
@@ -19,9 +21,10 @@ export function AchievementsSection() {
           sectionLabel={locale === 'vi' ? 'THÀNH TỰU' : 'ACHIEVEMENTS'}
         />
         <div className="section__head">
-          <h2 id="achievements-heading">
-            {locale === 'vi' ? 'THÀNH TỰU & CỘT MỐC' : 'ACHIEVEMENTS & MILESTONES'}
-          </h2>
+          <MotionHeadline
+            id="achievements-heading"
+            text={locale === 'vi' ? 'THÀNH TỰU & CỘT MỐC' : 'ACHIEVEMENTS & MILESTONES'}
+          />
           <p className="section__lead">
             {locale === 'vi'
               ? 'Đồ án tốt nghiệp, nghiên cứu khoa học, kênh sáng tạo và mô hình 3D.'
@@ -34,17 +37,24 @@ export function AchievementsSection() {
             <motion.li
               className="ledger-list__row kinetic-row"
               key={item.id}
-              initial={{ opacity: 0.14, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false, amount: 'some' }}
-              transition={{ duration: 0.42, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 28, rotateX: -32, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+              viewport={{ once: false, amount: 0.15 }}
+              transition={{ duration: 0.54, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+              style={{ transformOrigin: '50% 88%', transformPerspective: 1050 }}
             >
               <span className="mono-num ledger-list__year">{item.year}</span>
               <div>
                 <h3 className="ledger-list__title">{t(item.title)}</h3>
                 <p className="ledger-list__org">{t(item.organization)}</p>
               </div>
-              <p className="ledger-list__detail">{t(item.detail)}</p>
+              <p className="ledger-list__detail">
+                {item.id === 'ach-youtube'
+                  ? locale === 'vi'
+                    ? `Duy trì sáng tạo từ năm ${data.youtube.joinedYear}, đạt ${data.youtube.subscribers.toLocaleString('en-US')}+ người đăng ký và ${data.youtube.videoCount.toLocaleString('en-US')} video đã xuất bản.`
+                    : `Active since ${data.youtube.joinedYear} with ${data.youtube.subscribers.toLocaleString('en-US')}+ subscribers and ${data.youtube.videoCount.toLocaleString('en-US')} published gaming and showcase videos.`
+                  : t(item.detail)}
+              </p>
               <div className="ledger-list__link-col">
                 {item.linkUrl && item.linkLabel && (
                   <a

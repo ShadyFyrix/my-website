@@ -1,9 +1,62 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { motion, useMotionValue, useScroll, useSpring, useTransform } from 'motion/react';
+import { useLanguage } from '../i18n/LanguageContext';
 import { useSpatial } from './SpatialContext';
 
 const EASE_EXPO = [0.22, 1, 0.36, 1] as const;
+
+/**
+ * Hysteresis Bidirectional Viewport Reveal Hook:
+ * - Triggers `true` cleanly whenever the element enters the clear viewport (forgiving threshold so titles NEVER get stuck hidden).
+ * - Resets silently to `false` only once the element leaves the viewport completely
+ *   (so it never blinks out while visible, and ALWAYS replays cleanly on scroll UP & DOWN).
+ */
+export function useBidirectionalReveal(
+  ref: RefObject<HTMLElement | null>,
+  enterMargin = '-40px 0px -8px 0px',
+  threshold = 0.05
+): boolean {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setVisible(true);
+      return;
+    }
+
+    const enterIO = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+        }
+      },
+      { rootMargin: enterMargin, threshold }
+    );
+
+    const exitIO = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          setVisible(false);
+        }
+      },
+      { rootMargin: '0px', threshold: 0 }
+    );
+
+    enterIO.observe(el);
+    exitIO.observe(el);
+
+    return () => {
+      enterIO.disconnect();
+      exitIO.disconnect();
+    };
+  }, [ref, enterMargin, threshold]);
+
+  return visible;
+}
 
 export function ScrollProgressRail() {
   const { scrollYProgress } = useScroll();
@@ -37,6 +90,16 @@ export function PointerSpotlight() {
     let cy = ty;
     let visible = false;
 
+    const tick = () => {
+      raf = 0;
+      cx += (tx - cx) * 0.18;
+      cy += (ty - cy) * 0.18;
+      el.style.transform = `translate3d(${(cx - 260).toFixed(1)}px, ${(cy - 260).toFixed(1)}px, 0)`;
+      if (visible && (Math.abs(tx - cx) > 0.35 || Math.abs(ty - cy) > 0.35)) {
+        raf = requestAnimationFrame(tick);
+      }
+    };
+
     const onMove = (e: PointerEvent) => {
       tx = e.clientX;
       ty = e.clientY;
@@ -44,26 +107,25 @@ export function PointerSpotlight() {
         visible = true;
         el.style.opacity = '1';
       }
+      if (!raf) {
+        raf = requestAnimationFrame(tick);
+      }
     };
 
     const onLeave = () => {
       visible = false;
       el.style.opacity = '0';
-    };
-
-    const tick = () => {
-      cx += (tx - cx) * 0.14;
-      cy += (ty - cy) * 0.14;
-      el.style.transform = `translate3d(${(cx - 260).toFixed(1)}px, ${(cy - 260).toFixed(1)}px, 0)`;
-      raf = requestAnimationFrame(tick);
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
     };
 
     window.addEventListener('pointermove', onMove, { passive: true });
     document.addEventListener('pointerleave', onLeave);
-    raf = requestAnimationFrame(tick);
 
     return () => {
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerleave', onLeave);
     };
@@ -72,27 +134,99 @@ export function PointerSpotlight() {
   return <div ref={orbRef} className="pointer-spotlight" aria-hidden="true" />;
 }
 
-const TICKER_ITEMS = [
+const TICKER_ITEMS_VI = [
   'SHADYFYRIX',
-  'MAGNETIC FLOW',
-  'HORIZONTAL GALLERY',
-  '3D BEDROCK',
-  'COMPUTER VISION',
-  'WASAPI AUDIO FFT',
-  'ARKNIGHTS CHIBI',
-  'BORDER BEAM FX',
+  'BETTERCALLSHADY',
+  'LỤC VĂN SƠN',
+  'FULL-STACK & AI',
+  'EXAMGUARD AI',
+  'VIBE GIF STUDIO',
+  'NOTGUNGUN 3D',
+  'MA-AT-ZESSOU',
+  'MINECRAFT BEDROCK 3D',
+  'GAME INDIE & YOUTUBE',
+];
+
+const TICKER_ITEMS_EN = [
+  'SHADYFYRIX',
+  'BETTERCALLSHADY',
+  'LUC VAN SON',
+  'FULL-STACK & AI',
+  'EXAMGUARD AI',
+  'VIBE GIF STUDIO',
+  'NOTGUNGUN 3D',
+  'MA-AT-ZESSOU',
+  'MINECRAFT BEDROCK 3D',
+  'INDIE GAMES & YOUTUBE',
 ];
 
 export function KineticTickerBand() {
-  const track = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  const { locale } = useLanguage();
+  const bandRef = useRef<HTMLDivElement | null>(null);
+  const [inView, setInView] = useState(true);
+  const items = locale === 'vi' ? TICKER_ITEMS_VI : TICKER_ITEMS_EN;
+  const track = [...items, ...items];
+
+  useEffect(() => {
+    const el = bandRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0,
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <div className="kinetic-ticker" aria-hidden="true">
+    <div ref={bandRef} className="kinetic-ticker" data-active={inView ? 'true' : 'false'} aria-hidden="true">
       <div className="kinetic-ticker__track">
         {track.map((label, idx) => (
-          <span className="kinetic-ticker__item" key={`${label}-${idx}`}>
-            <span className="kinetic-ticker__glyph">{idx % 2 === 0 ? '◆' : '///'}</span>
+          <span
+            className={`kinetic-ticker__item ${idx % 2 === 1 ? 'kinetic-ticker__item--outline' : ''}`}
+            key={`${label}-${idx}`}
+          >
+            <span className="kinetic-ticker__glyph">
+              {idx % 3 === 0 ? '✦' : idx % 3 === 1 ? '+' : '◆'}
+            </span>
             <span>{label}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const BG_MARQUEE_ROW_A = ['Shadyfyrix', 'BetterCallShady'];
+const BG_MARQUEE_ROW_B = ['BetterCallShady', 'Shadyfyrix'];
+
+/**
+ * Monumental Dual-Track Kinetic Background Typography (Pure GPU translate3d — Lean Texture Footprint)
+ */
+export function BackgroundKineticMarquee() {
+  const rowA = [...BG_MARQUEE_ROW_A, ...BG_MARQUEE_ROW_A];
+  const rowB = [...BG_MARQUEE_ROW_B, ...BG_MARQUEE_ROW_B];
+
+  return (
+    <div className="bg-kinetic-marquee" aria-hidden="true">
+      <div className="bg-kinetic-marquee__row bg-kinetic-marquee__row--left">
+        {rowA.map((word, idx) => (
+          <span
+            key={`a-${idx}`}
+            className={`bg-kinetic-marquee__word ${idx % 2 === 1 ? 'bg-kinetic-marquee__word--serif-stroke' : ''}`}
+          >
+            <span>{word}</span>
+            <span className="bg-kinetic-marquee__sep">✦</span>
+          </span>
+        ))}
+      </div>
+      <div className="bg-kinetic-marquee__row bg-kinetic-marquee__row--right">
+        {rowB.map((word, idx) => (
+          <span
+            key={`b-${idx}`}
+            className={`bg-kinetic-marquee__word ${idx % 2 === 0 ? 'bg-kinetic-marquee__word--serif-white' : 'bg-kinetic-marquee__word--ember'}`}
+          >
+            <span>{word}</span>
+            <span className="bg-kinetic-marquee__sep">/</span>
           </span>
         ))}
       </div>
@@ -142,21 +276,31 @@ export function LiveFFTCanvas() {
 
     let raf = 0;
     let t = 0;
+    let inView = true;
+    let cachedW = Math.max(240, Math.floor(canvas.clientWidth || 320));
+    let cachedH = Math.max(48, Math.floor(canvas.clientHeight || 64));
     const freqData = new Uint8Array(64);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const draw = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      const w = Math.max(240, Math.floor(rect.width));
-      const h = Math.max(48, Math.floor(rect.height));
-
-      if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-      }
-
+    const syncSize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+      cachedW = Math.max(240, Math.floor(canvas.clientWidth || 320));
+      cachedH = Math.max(48, Math.floor(canvas.clientHeight || 64));
+      canvas.width = Math.round(cachedW * dpr);
+      canvas.height = Math.round(cachedH * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    syncSize();
+
+    const ro = new ResizeObserver(syncSize);
+    ro.observe(canvas);
+
+    const draw = () => {
+      raf = 0;
+      if (!inView) return;
+
+      const w = cachedW;
+      const h = cachedH;
       ctx.clearRect(0, 0, w, h);
 
       if (!reduced) t += 0.045;
@@ -180,7 +324,8 @@ export function LiveFFTCanvas() {
 
       for (let i = 0; i < bars; i++) {
         const norm = i / (bars - 1);
-        const pointerPeak = Math.exp(-Math.pow((norm - px) * 5.2, 2));
+        const diff = (norm - px) * 5.2;
+        const pointerPeak = 1 / (1 + diff * diff);
         let amp: number;
         if (hasLiveAudio) {
           amp = (freqData[Math.min(63, i)] / 255) * 0.9 + 0.1;
@@ -196,17 +341,35 @@ export function LiveFFTCanvas() {
         const x = i * (barW + gap);
         const y = h - barH;
 
-        ctx.fillStyle = i % 7 === 0 ? '#ff6a45' : i % 3 === 0 ? '#9b5cff' : '#36e5ff';
+        ctx.fillStyle = i % 7 === 0 ? '#fff1e6' : i % 3 === 0 ? '#ff9d66' : '#ff6a2b';
         ctx.fillRect(x, y, barW, barH);
       }
 
-      if (!reduced) {
+      if (!reduced && inView) {
         raf = requestAnimationFrame(draw);
       }
     };
 
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView && !raf) {
+          raf = requestAnimationFrame(draw);
+        } else if (!inView && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      },
+      { threshold: 0.01 }
+    );
+    io.observe(canvas);
+
     draw();
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect();
+      io.disconnect();
+    };
   }, [analyserRef, liveRef]);
 
   return <canvas ref={canvasRef} className="fft-canvas" aria-hidden="true" />;
@@ -238,6 +401,7 @@ export function DepthSurface({
   onMouseLeave,
 }: DepthSurfaceProps) {
   const ref = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<DOMRect | null>(null);
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const rotateX = useSpring(rawX, { stiffness: 210, damping: 24 });
@@ -250,15 +414,24 @@ export function DepthSurface({
     setCanTilt(fine && !reduced);
   }, []);
 
+  const handleEnter = () => {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    onMouseEnter?.();
+  };
+
   const handleMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
+    const rect = rectRef.current ?? ref.current.getBoundingClientRect();
+    rectRef.current = rect;
     const lx = e.clientX - rect.left;
     const ly = e.clientY - rect.top;
     const px = lx / Math.max(1, rect.width);
     const py = ly / Math.max(1, rect.height);
     ref.current.style.setProperty('--mx', `${lx.toFixed(1)}px`);
     ref.current.style.setProperty('--my', `${ly.toFixed(1)}px`);
+    ref.current.style.setProperty('--glint-shift', `${((py - 0.5) * 28).toFixed(1)}%`);
     if (canTilt) {
       rawY.set((px - 0.5) * 2 * maxTilt);
       rawX.set(-(py - 0.5) * 2 * maxTilt);
@@ -266,8 +439,10 @@ export function DepthSurface({
   };
 
   const handleLeave = () => {
+    rectRef.current = null;
     rawX.set(0);
     rawY.set(0);
+    ref.current?.style.setProperty('--glint-shift', '0%');
     onMouseLeave?.();
   };
 
@@ -286,9 +461,10 @@ export function DepthSurface({
           : undefined
       }
       onPointerMove={handleMove}
-      onPointerEnter={onMouseEnter}
+      onPointerEnter={handleEnter}
       onPointerLeave={handleLeave}
     >
+      <div className="depth-surface__liquid-glint" aria-hidden="true" />
       <div className="depth-surface__beam" aria-hidden="true" />
       <div className="depth-surface__rim-spot" aria-hidden="true" />
       {children}
@@ -350,23 +526,329 @@ export function MagneticWrap({ children, strength = 6, className = '' }: Magneti
   );
 }
 
+export type Scroll3DVariant = 'unfold' | 'wing-left' | 'wing-right';
+
+interface ScrollDepth3DProps {
+  children: ReactNode;
+  className?: string;
+  variant?: Scroll3DVariant;
+}
+
+/**
+ * Zero-Scroll-Thrash Bidirectional 3D Perspective Stage:
+ * - Uses IntersectionObserver + WAAPI compositor reveal instead of per-pixel JS scroll inline style writes
+ * - Unfolds smoothly in 3D when entering viewport (both scrolling down & up) with 0 scroll-tick recalc cost
+ */
+export function ScrollDepth3D({
+  children,
+  className = '',
+  variant = 'unfold',
+}: ScrollDepth3DProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const isVisible = useBidirectionalReveal(ref, '-20px 0px -10px 0px', 0.02);
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  if (reduced) {
+    return <div className={className}>{children}</div>;
+  }
+
+  const enterRotX = variant === 'unfold' ? -14 : -10;
+  const enterRotY = variant === 'wing-left' ? 10 : variant === 'wing-right' ? -10 : 0;
+
+  return (
+    <div ref={ref} className={`scroll-depth-stage ${className}`.trim()}>
+      <motion.div
+        className="scroll-depth-inner"
+        initial={{ opacity: 0.12, y: 32, rotateX: enterRotX, rotateY: enterRotY, scale: 0.95 }}
+        animate={
+          isVisible
+            ? {
+                opacity: 1,
+                y: 0,
+                rotateX: 0,
+                rotateY: 0,
+                scale: 1,
+                transition: { duration: 0.62, ease: EASE_EXPO },
+              }
+            : {
+                opacity: 0.12,
+                y: 32,
+                rotateX: enterRotX,
+                rotateY: enterRotY,
+                scale: 0.95,
+                transition: { duration: 0.01 },
+              }
+        }
+        style={{ transformOrigin: '50% 92%', transformPerspective: 1200 }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
 interface RevealBlockProps {
   children: ReactNode;
   delay?: number;
   className?: string;
+  variant?: Scroll3DVariant;
 }
 
-export function RevealBlock({ children, delay = 0, className }: RevealBlockProps) {
+export function RevealBlock({
+  children,
+  className = '',
+  variant = 'unfold',
+}: RevealBlockProps) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0.14, y: 22, scale: 0.985 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: false, amount: 'some' }}
-      transition={{ duration: 0.46, delay, ease: EASE_EXPO }}
-    >
+    <ScrollDepth3D className={className} variant={variant}>
       {children}
-    </motion.div>
+    </ScrollDepth3D>
+  );
+}
+
+const HEADLINE_WORD = {
+  hidden: {
+    rotateX: -56,
+    y: 24,
+    scale: 0.9,
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    rotateX: 0,
+    y: 0,
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 205,
+      damping: 23,
+      mass: 0.82,
+      delay,
+    },
+  }),
+};
+
+const HEADLINE_PILL = {
+  hidden: {
+    scaleX: 0.22,
+    scaleY: 0.72,
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    scaleX: 1,
+    scaleY: 1,
+    opacity: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 240,
+      damping: 20,
+      mass: 0.78,
+      delay,
+    },
+  }),
+};
+
+const HEADLINE_MARKER_WIPE = {
+  hidden: {
+    scaleX: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    scaleX: 1,
+    transition: { duration: 0.52, delay, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+};
+
+const HEADLINE_BLOCK_SWEEP = {
+  hidden: {
+    scaleX: 0,
+    x: '0%',
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    scaleX: [0, 1, 1, 0],
+    x: ['0%', '0%', '100%', '100%'],
+    opacity: [1, 1, 1, 0],
+    transition: {
+      duration: 0.54,
+      delay,
+      ease: [0.76, 0, 0.24, 1] as const,
+      times: [0, 0.42, 0.54, 1],
+    },
+  }),
+};
+
+interface MotionHeadlineProps {
+  id?: string;
+  text: string;
+  className?: string;
+  pillText?: string;
+  pillVariant?: 'live' | 'solar' | 'glass';
+}
+
+/**
+ * Apple iPhone / Made-by-Google Commercial Kinetic Title Card:
+ * - Solid white lead words with 3D Flip-In + crisp commercial block flash
+ * - Inline morphing capsule pill (`[● LIVE]`, `[✦ 07]`, `[✦]`, `[&]`) expanding between clauses
+ * - Vibrant Solar-Orange Highlight Marker Wipe sweeping behind the emphasis phrase
+ */
+export function MotionHeadline({
+  id,
+  text,
+  className = '',
+  pillText,
+  pillVariant = 'glass',
+}: MotionHeadlineProps) {
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+  const isVisible = useBidirectionalReveal(headingRef, '-36px 0px -8px 0px', 0.05);
+
+  const words = text.trim().split(/\s+/);
+  const ampIdx = words.indexOf('&');
+  const dotIdx = words.indexOf('·');
+  const sepIdx = ampIdx > 0 ? ampIdx : dotIdx > 0 ? dotIdx : -1;
+
+  let leadWords: string[];
+  let accentWords: string[];
+  let connectorLabel = pillText;
+  let connectorVariant = pillVariant;
+
+  if (sepIdx > 0) {
+    leadWords = words.slice(0, sepIdx);
+    accentWords = words.slice(sepIdx + 1);
+    if (!connectorLabel) {
+      connectorLabel = words[sepIdx] === '·' ? '✦' : words[sepIdx];
+    }
+  } else {
+    const splitAt = words.length >= 4 ? words.length - 2 : Math.max(1, words.length - 1);
+    leadWords = words.slice(0, splitAt);
+    accentWords = words.slice(splitAt);
+  }
+
+  const pillDelay = leadWords.length * 0.065 + 0.04;
+  const markerDelay = pillDelay + (connectorLabel ? 0.1 : 0.02);
+
+  return (
+    <h2
+      ref={headingRef}
+      id={id}
+      className={`motion-headline ${className}`.trim()}
+      data-active={isVisible ? 'true' : 'false'}
+    >
+      {leadWords.map((word, idx) => (
+        <span className="motion-headline__mask motion-headline__mask--sweep" key={`lead-${word}-${idx}`}>
+          <motion.span
+            className="motion-headline__word chrome-text chrome-text--platinum"
+            custom={idx * 0.06}
+            variants={HEADLINE_WORD}
+            initial="hidden"
+            animate={isVisible ? 'visible' : 'hidden'}
+            style={{ transformPerspective: 1100 }}
+          >
+            <span className="chrome-text__depth" aria-hidden="true">
+              {word}
+            </span>
+            <span className="chrome-text__face">{word}</span>
+          </motion.span>
+          <motion.span
+            className="title-block-sweep title-block-sweep--light"
+            aria-hidden="true"
+            custom={idx * 0.05}
+            variants={HEADLINE_BLOCK_SWEEP}
+            initial="hidden"
+            animate={isVisible ? 'visible' : 'hidden'}
+          />
+        </span>
+      ))}
+
+      {connectorLabel && connectorLabel === '&' && (
+        <motion.span
+          className="motion-headline__amp chrome-text chrome-text--hollow-amp"
+          custom={pillDelay}
+          variants={HEADLINE_WORD}
+          initial="hidden"
+          animate={isVisible ? 'visible' : 'hidden'}
+          style={{ transformPerspective: 1100 }}
+        >
+          <span className="chrome-text__depth" aria-hidden="true">
+            &amp;
+          </span>
+          <span className="chrome-text__face">&amp;</span>
+        </motion.span>
+      )}
+
+      {connectorLabel && connectorLabel === '✦' && (
+        <motion.span
+          className="title-mg-glyph"
+          custom={pillDelay}
+          variants={HEADLINE_PILL}
+          initial="hidden"
+          animate={isVisible ? 'visible' : 'hidden'}
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 2L14.3 9.7L22 12L14.3 14.3L12 22L9.7 14.3L2 12L9.7 9.7L12 2Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </motion.span>
+      )}
+
+      {connectorLabel && connectorLabel !== '&' && connectorLabel !== '✦' && (
+        <motion.span
+          className={`title-mg-tag title-mg-tag--${connectorVariant}`}
+          custom={pillDelay}
+          variants={HEADLINE_PILL}
+          initial="hidden"
+          animate={isVisible ? 'visible' : 'hidden'}
+        >
+          <span className="title-mg-tag__corners" aria-hidden="true" />
+          {connectorVariant === 'live' ? (
+            <>
+              <span className="title-mg-tag__radar" aria-hidden="true">
+                <i />
+              </span>
+              <span className="title-mg-tag__label mono-num">{connectorLabel}</span>
+            </>
+          ) : (
+            <span className="title-mg-tag__count mono-num">
+              <i aria-hidden="true">/</i>
+              <b>{connectorLabel}</b>
+            </span>
+          )}
+        </motion.span>
+      )}
+
+      {accentWords.length > 0 && (
+        <motion.span
+          className="motion-headline__marker"
+          custom={markerDelay}
+          variants={HEADLINE_WORD}
+          initial="hidden"
+          animate={isVisible ? 'visible' : 'hidden'}
+          style={{ transformPerspective: 1100 }}
+        >
+          <motion.span
+            className="motion-headline__marker-fill"
+            aria-hidden="true"
+            custom={markerDelay + 0.08}
+            variants={HEADLINE_MARKER_WIPE}
+            initial="hidden"
+            animate={isVisible ? 'visible' : 'hidden'}
+          />
+          <span className="motion-headline__marker-text">{accentWords.join(' ')}</span>
+        </motion.span>
+      )}
+    </h2>
   );
 }
 
@@ -377,16 +859,35 @@ interface AnimatedRuleProps {
 }
 
 export function AnimatedRule({ className = '', sectionIndex, sectionLabel }: AnimatedRuleProps) {
+  const ruleRef = useRef<HTMLDivElement | null>(null);
+  const isVisible = useBidirectionalReveal(ruleRef, '-72px 0px -16px 0px', 0.1);
+
   return (
-    <div className={`section-chapter ${className}`.trim()}>
+    <div ref={ruleRef} className={`section-chapter ${className}`.trim()} data-active={isVisible ? 'true' : 'false'}>
       {(sectionIndex || sectionLabel) && (
         <motion.div
           className="section-chapter__meta"
-          initial={{ opacity: 0.18, x: -16 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: false, amount: 'some' }}
-          transition={{ duration: 0.4, ease: EASE_EXPO }}
+          initial={{ opacity: 0, rotateX: -58, y: 12, scale: 0.9 }}
+          animate={
+            isVisible
+              ? {
+                  opacity: 1,
+                  rotateX: 0,
+                  y: 0,
+                  scale: 1,
+                  transition: { duration: 0.48, ease: EASE_EXPO },
+                }
+              : {
+                  opacity: 0,
+                  rotateX: -58,
+                  y: 12,
+                  scale: 0.9,
+                  transition: { duration: 0.01 },
+                }
+          }
+          style={{ transformOrigin: '50% 85%', transformPerspective: 900 }}
         >
+          <span className="section-chapter__glyph" aria-hidden="true" />
           {sectionIndex && <span className="section-chapter__num mono-num">{sectionIndex}</span>}
           {sectionLabel && <span className="section-chapter__name">{sectionLabel}</span>}
         </motion.div>
@@ -394,13 +895,21 @@ export function AnimatedRule({ className = '', sectionIndex, sectionLabel }: Ani
       <motion.div
         className="spatial-rule"
         initial={{ scaleX: 0.08, opacity: 0.35 }}
-        whileInView={{ scaleX: 1, opacity: 1 }}
-        viewport={{ once: false, amount: 'some' }}
-        transition={{ duration: 0.56, ease: EASE_EXPO }}
+        animate={
+          isVisible
+            ? { scaleX: 1, opacity: 1, transition: { duration: 0.56, ease: EASE_EXPO } }
+            : { scaleX: 0.08, opacity: 0.35, transition: { duration: 0.01 } }
+        }
         aria-hidden="true"
       >
         <span className="spatial-rule__node" />
+        <span className="spatial-rule__pulse" />
       </motion.div>
+      {sectionIndex && (
+        <span className="section-chapter__ticks mono-num" aria-hidden="true">
+          /// CH.{sectionIndex}
+        </span>
+      )}
     </div>
   );
 }

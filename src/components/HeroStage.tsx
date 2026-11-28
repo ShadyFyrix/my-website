@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useScroll, useTransform } from 'motion/react';
 import {
   ArrowDownRight,
   FlipHorizontal2,
@@ -20,9 +20,105 @@ import { EYJA_ACTIONS, EYJA_SKINS, getEyjaClipSrc } from '../data/eyja';
 import { NOTGUNGUN_AUDIO } from '../lib/bedrockModel';
 import { useSpatial } from './SpatialContext';
 import type { HeroStageMode } from './SpatialContext';
-import { DepthSurface, LiveFFTCanvas, MagneticWrap } from './SpatialFX';
+import { DepthSurface, LiveFFTCanvas, MagneticWrap, useBidirectionalReveal } from './SpatialFX';
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+const HERO_FLIP_VARIANTS = {
+  hidden: (cfg: { delay: number; yaw: number }) => ({
+    rotateX: -58,
+    rotateY: cfg.yaw,
+    y: 30,
+    scale: 0.9,
+    opacity: 0,
+    transition: { duration: 0.01 },
+  }),
+  visible: (cfg: { delay: number; yaw: number }) => ({
+    rotateX: 0,
+    rotateY: 0,
+    y: 0,
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 200,
+      damping: 23,
+      mass: 0.84,
+      delay: cfg.delay,
+    },
+  }),
+};
+
+const HERO_SUB_VARIANTS = {
+  hidden: {
+    rotateX: -28,
+    y: 22,
+    scale: 0.96,
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    rotateX: 0,
+    y: 0,
+    scale: 1,
+    opacity: 1,
+    transition: { duration: 0.58, delay, ease: EASE_OUT },
+  }),
+};
+
+const HERO_PILL_VARIANTS = {
+  hidden: {
+    scaleX: 0.2,
+    scaleY: 0.72,
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    scaleX: 1,
+    scaleY: 1,
+    opacity: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 240,
+      damping: 20,
+      mass: 0.76,
+      delay,
+    },
+  }),
+};
+
+const HERO_SWEEP_VARIANTS = {
+  hidden: {
+    scaleX: 0,
+    x: '0%',
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: (delay: number) => ({
+    scaleX: [0, 1, 1, 0],
+    x: ['0%', '0%', '100%', '100%'],
+    opacity: [1, 1, 1, 0],
+    transition: {
+      duration: 0.62,
+      delay,
+      ease: [0.76, 0, 0.24, 1] as const,
+      times: [0, 0.42, 0.54, 1],
+    },
+  }),
+};
+
+const HERO_RULE_VARIANTS = {
+  hidden: {
+    scaleX: 0,
+    opacity: 0,
+    transition: { duration: 0.01 },
+  },
+  visible: {
+    scaleX: 1,
+    opacity: 1,
+    transition: { duration: 0.66, delay: 0.32, ease: EASE_OUT },
+  },
+};
 
 export function HeroStage() {
   const { locale, t } = useLanguage();
@@ -47,15 +143,35 @@ export function HeroStage() {
     setDragging,
   } = useSpatial();
 
+  const heroRef = useRef<HTMLElement | null>(null);
+  const heroHeadlineRef = useRef<HTMLHeadingElement | null>(null);
+  const heroTitleVisible = useBidirectionalReveal(heroHeadlineRef, '-48px 0px -8px 0px', 0.08);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dragOriginRef = useRef({ active: false, x: 0, y: 0, moved: 0 });
   const showcaseVideoRef = useRef<HTMLVideoElement | null>(null);
   const [eyjaFlipped, setEyjaFlipped] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const identityY = useTransform(heroScroll, [0, 1], [0, -56]);
+  const identityRotateX = useTransform(heroScroll, [0, 1], [0, -10]);
+  const identityScale = useTransform(heroScroll, [0, 1], [1, 0.94]);
+  const identityOpacity = useTransform(heroScroll, [0, 0.55, 0.92, 1], [1, 0.92, 0.28, 0.12]);
+
+  const dockY = useTransform(heroScroll, [0, 1], [0, -26]);
+  const dockRotateX = useTransform(heroScroll, [0, 1], [0, 8]);
+  const dockRotateY = useTransform(heroScroll, [0, 1], [0, -5]);
+  const dockScale = useTransform(heroScroll, [0, 1], [1, 0.95]);
 
   const vibeProduct = PRODUCTS.find((p) => p.id === 'vibe-gif-studio')!;
   const examguardProduct = PRODUCTS.find((p) => p.id === 'examguard-ai')!;
-
-  const headlineLines = ['BETTER CALL SHADY', 'SHADYFYRIX'];
 
   const tabs: Array<{ key: HeroStageMode; label: string }> = [
     { key: 'shady-cube', label: 'Shady Cube 3D' },
@@ -88,7 +204,41 @@ export function HeroStage() {
   };
 
   return (
-    <section className="hero-space" aria-labelledby="hero-heading">
+    <section ref={heroRef} className="hero-space" aria-labelledby="hero-heading">
+      {/* Broadcast Kinetic Motion-Graphic Stage Reticle & Registration HUD (100% Compositor-Thread SVGs, 0 Layouts) */}
+      <div className="hero-mg" data-active={heroTitleVisible ? 'true' : 'false'} aria-hidden="true">
+        <div className="hero-mg__reticle">
+          <svg className="hero-mg__svg hero-mg__ring-outer" viewBox="0 0 640 640" fill="none">
+            <circle cx="320" cy="320" r="292" stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" strokeDasharray="3 11" />
+            <circle cx="320" cy="320" r="292" stroke="rgba(255,106,43,0.78)" strokeWidth="2" strokeDasharray="62 396" strokeLinecap="round" />
+            <line x1="320" y1="14" x2="320" y2="36" stroke="rgba(255,106,43,0.92)" strokeWidth="1.8" />
+            <line x1="320" y1="604" x2="320" y2="626" stroke="rgba(255,255,255,0.65)" strokeWidth="1.6" />
+            <line x1="14" y1="320" x2="36" y2="320" stroke="rgba(255,255,255,0.65)" strokeWidth="1.6" />
+            <line x1="604" y1="320" x2="626" y2="320" stroke="rgba(255,106,43,0.92)" strokeWidth="1.8" />
+          </svg>
+          <svg className="hero-mg__svg hero-mg__ring-inner" viewBox="0 0 640 640" fill="none">
+            <circle cx="320" cy="320" r="228" stroke="rgba(255,176,128,0.28)" strokeWidth="1.15" strokeDasharray="18 20 4 20" />
+            <circle cx="320" cy="320" r="228" stroke="rgba(255,255,255,0.52)" strokeWidth="1.5" strokeDasharray="34 324" strokeLinecap="round" />
+          </svg>
+          <svg className="hero-mg__svg" viewBox="0 0 640 640" fill="none">
+            <path d="M96 126 V96 H126" stroke="rgba(255,255,255,0.44)" strokeWidth="1.5" />
+            <path d="M544 126 V96 H514" stroke="rgba(255,106,43,0.78)" strokeWidth="1.5" />
+            <path d="M96 514 V544 H126" stroke="rgba(255,106,43,0.78)" strokeWidth="1.5" />
+            <path d="M544 514 V544 H514" stroke="rgba(255,255,255,0.44)" strokeWidth="1.5" />
+          </svg>
+        </div>
+
+        <div className="hero-mg__cross hero-mg__cross--tl">+</div>
+        <div className="hero-mg__cross hero-mg__cross--tr">+</div>
+
+        <div className="hero-mg__scroll-cue">
+          <span className="hero-mg__scroll-track">
+            <span className="hero-mg__scroll-dot" />
+          </span>
+          <span className="mono-num">SCROLL</span>
+        </div>
+      </div>
+
       {/* Open interactive WebGL 3D drag + click-to-bounce stage */}
       {is3DStage && (
         <div
@@ -321,33 +471,140 @@ export function HeroStage() {
           )}
         </AnimatePresence>
 
-        <div className="hero-space__bottom">
-          <div className="hero-space__identity">
-            <h1 className="hero-space__headline" id="hero-heading">
-              {headlineLines.map((line, idx) => (
-                <span className="hero-space__line-mask" key={line}>
+        <div className="hero-space__bottom scroll-depth-stage">
+          <motion.div
+            className="hero-space__identity"
+            style={
+              reducedMotion
+                ? undefined
+                : {
+                    y: identityY,
+                    rotateX: identityRotateX,
+                    scale: identityScale,
+                    opacity: identityOpacity,
+                    transformPerspective: 1200,
+                  }
+            }
+          >
+            <h1
+              ref={heroHeadlineRef}
+              className="hero-space__headline"
+              id="hero-heading"
+              data-active={heroTitleVisible ? 'true' : 'false'}
+            >
+              <span className="hero-space__line-row">
+                <span className="hero-space__flip-slot hero-space__flip-slot--sweep">
                   <motion.span
-                    className={`hero-space__line ${idx === 1 ? 'hero-space__line--accent' : ''}`}
-                    initial={{ y: '108%', opacity: 0.2 }}
-                    animate={{ y: '0%', opacity: 1 }}
-                    transition={{ duration: 0.56, delay: 0.08 + idx * 0.13, ease: EASE_OUT }}
+                    className="hero-space__line hero-space__line--3d"
+                    custom={{ delay: 0.04, yaw: -8 }}
+                    variants={HERO_FLIP_VARIANTS}
+                    initial={reducedMotion ? false : 'hidden'}
+                    animate={heroTitleVisible ? 'visible' : 'hidden'}
+                    style={{ transformPerspective: 1100 }}
                   >
-                    {line}
+                    <span className="chrome-text chrome-text--platinum">
+                      <span className="chrome-text__depth" aria-hidden="true">BETTER CALL</span>
+                      <span className="chrome-text__face">BETTER CALL</span>
+                    </span>
                   </motion.span>
                   <motion.span
-                    className={`hero-space__wipe ${idx === 1 ? 'hero-space__wipe--solar' : ''}`}
+                    className="title-block-sweep title-block-sweep--light"
                     aria-hidden="true"
-                    initial={{ x: '-105%' }}
-                    animate={{ x: '115%' }}
-                    transition={{ duration: 0.68, delay: idx * 0.13, ease: [0.65, 0, 0.35, 1] }}
+                    custom={0}
+                    variants={HERO_SWEEP_VARIANTS}
+                    initial={reducedMotion ? false : 'hidden'}
+                    animate={heroTitleVisible ? 'visible' : 'hidden'}
                   />
                 </span>
-              ))}
+              </span>
+
+              <span className="hero-space__line-row hero-space__line-row--mid">
+                <span className="hero-space__flip-slot">
+                  <motion.span
+                    className="hero-space__line hero-space__line--3d"
+                    custom={{ delay: 0.14, yaw: 10 }}
+                    variants={HERO_FLIP_VARIANTS}
+                    initial={reducedMotion ? false : 'hidden'}
+                    animate={heroTitleVisible ? 'visible' : 'hidden'}
+                    style={{ transformPerspective: 1100 }}
+                  >
+                    <span className="chrome-text chrome-text--platinum-italic">
+                      <span className="chrome-text__depth" aria-hidden="true">SHADY</span>
+                      <span className="chrome-text__face">SHADY</span>
+                    </span>
+                  </motion.span>
+                </span>
+
+                <motion.span
+                  className="title-mg-tag title-mg-tag--hero"
+                  aria-hidden="true"
+                  custom={0.22}
+                  variants={HERO_PILL_VARIANTS}
+                  initial={reducedMotion ? false : 'hidden'}
+                  animate={heroTitleVisible ? 'visible' : 'hidden'}
+                >
+                  <span className="title-mg-tag__corners" />
+                  <svg className="title-mg-tag__icon" viewBox="0 0 18 18" fill="none">
+                    <path d="M9 1.5L10.7 7.3L16.5 9L10.7 10.7L9 16.5L7.3 10.7L1.5 9L7.3 7.3L9 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                  </svg>
+                  <span className="title-mg-tag__label mono-num">
+                    AI <i>/</i> 3D <i>/</i> DEV
+                  </span>
+                  <span className="title-mg-tag__sweep" />
+                </motion.span>
+              </span>
+
+              <span className="hero-space__flip-slot hero-space__flip-slot--block hero-space__flip-slot--sweep">
+                <motion.span
+                  className="hero-space__line hero-space__line--3d"
+                  custom={{ delay: 0.24, yaw: -6 }}
+                  variants={HERO_FLIP_VARIANTS}
+                  initial={reducedMotion ? false : 'hidden'}
+                  animate={heroTitleVisible ? 'visible' : 'hidden'}
+                  style={{ transformPerspective: 1100 }}
+                >
+                  <span className="chrome-text chrome-text--copper-hero">
+                    <span className="chrome-text__depth" aria-hidden="true">SHADYFYRIX</span>
+                    <span className="chrome-text__face">SHADYFYRIX</span>
+                  </span>
+                </motion.span>
+                <motion.span
+                  className="title-block-sweep title-block-sweep--solar"
+                  aria-hidden="true"
+                  custom={0.16}
+                  variants={HERO_SWEEP_VARIANTS}
+                  initial={reducedMotion ? false : 'hidden'}
+                  animate={heroTitleVisible ? 'visible' : 'hidden'}
+                />
+                <motion.span
+                  className="hero-space__brand-rule"
+                  aria-hidden="true"
+                  variants={HERO_RULE_VARIANTS}
+                  initial={reducedMotion ? false : 'hidden'}
+                  animate={heroTitleVisible ? 'visible' : 'hidden'}
+                />
+              </span>
             </h1>
 
-            <p className="hero-space__lead">{t(PROFILE.heroLead)}</p>
+            <motion.p
+              className="hero-space__lead"
+              custom={0.28}
+              variants={HERO_SUB_VARIANTS}
+              initial={reducedMotion ? false : 'hidden'}
+              animate={heroTitleVisible ? 'visible' : 'hidden'}
+              style={{ transformOrigin: '50% 90%', transformPerspective: 1100 }}
+            >
+              {t(PROFILE.heroLead)}
+            </motion.p>
 
-            <div className="hero-space__actions">
+            <motion.div
+              className="hero-space__actions"
+              custom={0.35}
+              variants={HERO_SUB_VARIANTS}
+              initial={reducedMotion ? false : 'hidden'}
+              animate={heroTitleVisible ? 'visible' : 'hidden'}
+              style={{ transformOrigin: '50% 90%', transformPerspective: 1100 }}
+            >
               <MagneticWrap>
                 <a className="btn btn--primary" href="#products">
                   <span>{locale === 'vi' ? 'Xem sản phẩm của mình' : 'Explore my builds'}</span>
@@ -359,12 +616,23 @@ export function HeroStage() {
                   <span>{locale === 'vi' ? 'Hoạt động live' : 'Live activity'}</span>
                 </a>
               </MagneticWrap>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <aside
+          <motion.aside
             className="spatial-dock"
             aria-label={locale === 'vi' ? 'Điều khiển sân khấu Hero' : 'Hero stage controls'}
+            style={
+              reducedMotion
+                ? undefined
+                : {
+                    y: dockY,
+                    rotateX: dockRotateX,
+                    rotateY: dockRotateY,
+                    scale: dockScale,
+                    transformPerspective: 1200,
+                  }
+            }
           >
             <div className="spatial-dock__hint">
               <Move3d size={15} aria-hidden="true" />
@@ -520,7 +788,7 @@ export function HeroStage() {
                 )}
               </div>
             )}
-          </aside>
+          </motion.aside>
         </div>
       </div>
     </section>
